@@ -7,3 +7,6 @@
 *.txt text eol=lf
 requirements_*.txt text eol=lf
 .gitkeep text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.disabled text eol=lf
