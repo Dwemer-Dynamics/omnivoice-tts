@@ -108,6 +108,7 @@ $assetVersion = static function (string $path): string {
     </main>
 
     <footer>
+        <span>Original tool by ErikErix (Discord) / erikholik (NexusMods)</span>
         <span>Root: <?php echo htmlspecialchars($root, ENT_QUOTES, 'UTF-8'); ?></span>
     </footer>
 

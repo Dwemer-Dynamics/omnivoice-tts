@@ -212,6 +212,11 @@ This component is derived from the submitted "Multilingual 96-Language TTS Tool
 v1.1" Windows package by ErikErix. ErikErix granted Dwemer Dynamics permission
 to publish and adapt the submitted tool as this component.
 
+Original tool author credit:
+
+- Discord: ErikErix
+- NexusMods: erikholik
+
 This repository's component source and documentation are licensed under the MIT
 License. See `LICENSE`.
 

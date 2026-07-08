@@ -17,6 +17,8 @@ Current status:
 - ErikErix granted Dwemer Dynamics permission to publish and adapt the
   submitted tool as this DwemerDistro component.
 - Attribution: original submitted Windows companion tool by ErikErix.
+- Discord: ErikErix.
+- NexusMods: erikholik.
 - Dwemer Dynamics publishes this adapted component source under the MIT License.
 
 ## OmniVoice
