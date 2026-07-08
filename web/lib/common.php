@@ -132,11 +132,15 @@ function run_cli(array $args, int $timeout = 60): array
     $stdout = '';
     $stderr = '';
     $started = time();
+    $observedExitCode = null;
     while (true) {
         $status = proc_get_status($process);
         $stdout .= stream_get_contents($pipes[1]);
         $stderr .= stream_get_contents($pipes[2]);
         if (!$status['running']) {
+            if (isset($status['exitcode']) && (int)$status['exitcode'] >= 0) {
+                $observedExitCode = (int)$status['exitcode'];
+            }
             break;
         }
         if ((time() - $started) > $timeout) {
@@ -157,6 +161,9 @@ function run_cli(array $args, int $timeout = 60): array
         }
     }
     $exitCode = proc_close($process);
+    if ($exitCode < 0 && $observedExitCode !== null) {
+        $exitCode = $observedExitCode;
+    }
     return ['ok' => $exitCode === 0, 'exit_code' => $exitCode, 'stdout' => $stdout, 'stderr' => $stderr];
 }
 
@@ -224,12 +231,12 @@ function start_job(string $label, array $commands): array
         $script .= "echo " . escapeshellarg('$ ' . implode(' ', $command)) . "\n";
         $script .= shell_join($command) . "\n";
         $script .= "code=$?\n";
-        $script .= "if [ \"$code\" -ne 0 ]; then break; fi\n";
+        $script .= "if [ \"\$code\" -ne 0 ]; then break; fi\n";
     }
     $script .= "echo\n";
-    $script .= "echo \"Finished: $(date -Is) exit=$code\"\n";
-    $script .= "echo \"$code\" > " . escapeshellarg($dir . '/exit_code') . "\n";
-    $script .= "exit \"$code\"\n";
+    $script .= "echo \"Finished: $(date -Is) exit=\$code\"\n";
+    $script .= "echo \"\$code\" > " . escapeshellarg($dir . '/exit_code') . "\n";
+    $script .= "exit \"\$code\"\n";
     file_put_contents($dir . '/job.sh', $script);
     chmod($dir . '/job.sh', 0755);
 
