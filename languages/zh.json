@@ -1,0 +1,16 @@
+{
+  "id": "zh",
+  "display_name": "Chinese",
+  "omnivoice_language": "Chinese",
+  "omnivoice_language_id": "zh",
+  "whisper_language": "chinese",
+  "aliases": ["mandarin", "cmn"],
+  "bootstrap_text": "你好。今天是河边安静的一天，风从群山之间吹过，我们可以在火旁慢慢说话。",
+  "master_text": "清晨，李明沿着旧路走向城堡，风吹着大门，干柴在壁炉里轻轻作响。",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

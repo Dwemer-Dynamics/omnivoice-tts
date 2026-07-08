@@ -1,0 +1,16 @@
+{
+  "id": "uk",
+  "display_name": "Ukrainian",
+  "omnivoice_language": "Ukrainian",
+  "omnivoice_language_id": "uk",
+  "whisper_language": "ukrainian",
+  "aliases": ["ukr", "українська"],
+  "bootstrap_text": "Привіт. Сьогодні спокійний день біля річки, вітер проходить через гори, і ми можемо тихо поговорити біля вогню.",
+  "master_text": "Вранці Юрій іде старою дорогою до замку, а сухі дрова тихо потріскують у каміні.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

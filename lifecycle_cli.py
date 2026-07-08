@@ -10,6 +10,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from language_catalog import RECOMMENDED_LANGUAGE_PRESETS
+
 
 BASE_DIR = Path(__file__).resolve().parent
 COPY_FOR_UNINSTALL = [
@@ -233,8 +235,13 @@ def verify_language_catalog(python: str) -> None:
         copy_component_files(root, COPY_FOR_LANGUAGE_CATALOG)
         presets = run([python, "omnivoice_cli.py", "languages", "presets"], root)
         assert_condition(presets.returncode == 0, f"preset listing failed: {presets.stderr}{presets.stdout}")
-        assert_condition("Recommended OmniVoice+Whisper profile presets: 96" in presets.stdout, "preset count was not reported as 96")
+        expected_count = len(RECOMMENDED_LANGUAGE_PRESETS)
+        assert_condition(
+            f"Recommended OmniVoice+Whisper profile presets: {expected_count}" in presets.stdout,
+            f"preset count was not reported as {expected_count}",
+        )
 
+        (root / "languages" / "de.json").unlink(missing_ok=True)
         enabled = run([python, "omnivoice_cli.py", "languages", "enable-preset", "de"], root)
         assert_condition(enabled.returncode == 0, f"native-sample preset enable failed: {enabled.stderr}{enabled.stdout}")
         assert_condition((root / "languages" / "de.json").is_file(), "de preset did not create de.json")

@@ -1,0 +1,16 @@
+{
+  "id": "ru",
+  "display_name": "Russian",
+  "omnivoice_language": "Russian",
+  "omnivoice_language_id": "ru",
+  "whisper_language": "russian",
+  "aliases": ["русский"],
+  "bootstrap_text": "Здравствуйте. Сегодня спокойный день у реки, ветер проходит над горами, и мы можем тихо поговорить у огня.",
+  "master_text": "Утром Георгий идет по старой дороге к замку, а сухие дрова тихо потрескивают в камине.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

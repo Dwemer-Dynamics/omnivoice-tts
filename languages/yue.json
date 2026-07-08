@@ -1,0 +1,16 @@
+{
+  "id": "yue",
+  "display_name": "Cantonese",
+  "omnivoice_language": "Cantonese",
+  "omnivoice_language_id": "yue",
+  "whisper_language": "cantonese",
+  "aliases": ["cantonese chinese"],
+  "bootstrap_text": "你好。今日河邊好安靜，風吹過山邊，我哋可以喺火旁邊慢慢傾偈。",
+  "master_text": "朝早，阿明沿住舊路行去城堡，風吹住大門，乾柴喺壁爐入面輕輕作響。",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

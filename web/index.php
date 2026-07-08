@@ -26,7 +26,6 @@ $assetVersion = static function (string $path): string {
         <div class="top-actions">
             <button id="refreshStatus" type="button">Refresh</button>
             <button id="runDoctor" type="button">Run Doctor</button>
-            <button id="startService" type="button">Start</button>
         </div>
     </header>
 

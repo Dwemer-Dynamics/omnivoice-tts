@@ -1,0 +1,16 @@
+{
+  "id": "pt-br",
+  "display_name": "Brazilian Portuguese",
+  "omnivoice_language": "Portuguese",
+  "omnivoice_language_id": "pt",
+  "whisper_language": "portuguese",
+  "aliases": ["brasileiro", "portugues brasileiro", "brazilian portuguese"],
+  "bootstrap_text": "Ola. Hoje esta um dia tranquilo perto do rio, o vento passa pelas montanhas e a gente pode conversar devagar junto ao fogo.",
+  "master_text": "De manha, Jorge caminha pela estrada velha ate o castelo, enquanto a lenha seca estala baixinho na lareira.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

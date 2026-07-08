@@ -224,7 +224,6 @@ function escapeHtml(value) {
 function wireEvents() {
   $("refreshStatus").addEventListener("click", loadStatus);
   $("runDoctor").addEventListener("click", () => startJob("doctor"));
-  $("startService").addEventListener("click", () => startJob("start_service"));
   $("loadLanguages").addEventListener("click", loadLanguages);
   $("profileSelect").addEventListener("change", async () => {
     updateLanguageMeta();

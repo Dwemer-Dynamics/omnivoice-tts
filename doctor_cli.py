@@ -299,7 +299,7 @@ def build_report(*, include_imports: bool = True) -> DoctorReport:
     checks.append(check_path("languages", BASE_DIR / "languages", kind="dir"))
     checks.append(check_path("server.py", BASE_DIR / "server.py"))
     checks.append(check_path("venv", BASE_DIR / "venv", kind="dir", required=False))
-    checks.append(check_path("start.sh", BASE_DIR / "start.sh", kind="file", required=False))
+    checks.append(check_path("start-gpu.sh", BASE_DIR / "start-gpu.sh"))
     port_free = port_is_free(8021)
     health_check = check_service_health()
     if port_free:

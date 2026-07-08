@@ -1,7 +1,9 @@
 # OmniVoice TTS for DwemerDistro
 
 OmniVoice TTS is an optional DwemerDistro component that runs inside the
-`DwemerAI4Skyrim3` WSL distro and exposes a local TTS API on `127.0.0.1:8021`.
+`DwemerAI4Skyrim3` WSL distro and exposes a local OmniVoice TTS API on
+`127.0.0.1:8021`, with compatibility endpoints for existing DwemerDistro TTS
+callers.
 
 The component is intended to support multilingual CHIM voice libraries first,
 with CHIM, Stobe, and Dialectic integration handled through native OmniVoice TTS
@@ -39,14 +41,19 @@ http://127.0.0.1/OmniVoice/
 
 Do not install these dependencies into XTTS' `/home/dwemer/python-tts` venv.
 
-## Component Startup
+## Configure
 
-When installed as a DwemerDistro component, OmniVoice starts with the distro.
-Disable it from the DwemerDistro component installer/manager rather than from
-the OmniVoice web UI.
+Run:
 
-The browser control panel exposes the installed language profiles, active
-language switching, diagnostics, test synthesis, and voice-library generation.
+```bash
+/home/dwemer/omnivoice-tts/conf.sh
+```
+
+DwemerDistro starts OmniVoice automatically while the component is installed.
+Use the launcher Installed Components flow or the uninstall option in `conf.sh`
+to remove the runtime. The configuration menu exposes status, language
+selection, voice import/build workflows, and uninstall.
+The same main workflows are available in the browser control panel.
 
 ## Service
 
@@ -103,8 +110,10 @@ python omnivoice_cli.py import-chim --language sk --all
 python omnivoice_cli.py build-library --language sk --all
 ```
 
-The enabled `languages/*.json` profiles are the supported, buildable profile set.
-The web UI only presents installed profiles as active language choices.
+The shipped `languages/*.json` profiles are the supported, buildable profile
+set for new installs. Add more languages by adding a real language profile with
+usable calibration sentences and then importing or building that language's
+voice library.
 
 Export prepared reference WAVs to another local TTS engine:
 
@@ -157,7 +166,7 @@ CHIM, Dialectic, and Stobe can use OmniVoice as its own TTS service:
 driver = omnivoice
 url = http://127.0.0.1:8021
 voice_field = voiceid
-language = en, es, cs, sk, or another installed profile id
+language = en, es, fr, pl, pt-br, or another installed profile id
 ```
 
 The native connector switches OmniVoice's active language through
@@ -189,9 +198,7 @@ arbitrary file path.
 
 - NVIDIA CUDA is required for the OmniVoice runtime.
 - The component is designed for local WSL use and binds to `127.0.0.1`.
-- Only installed language profiles are supported. Add more profiles by shipping
-  real profile JSON and calibration/reference data, then building that language's
-  voice library.
+- Language profiles are presets. Not every preset has been quality evaluated.
 - Stobe and Dialectic need generic/custom voice setup because their voice IDs
   do not map directly to Skyrim VoiceIDs.
 

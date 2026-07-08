@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# Multilingual TTS language catalog v0.6.2
+# Multilingual TTS language catalog v0.6.3
 #
 # This catalog has two layers:
 # 1) WHISPER_LANGUAGES: the OpenAI Whisper tokenizer language list used for ASR
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 WHISPER_LANGUAGES: dict[str, str] = {
     "en": "english", "zh": "chinese", "de": "german", "es": "spanish", "ru": "russian",
-    "ko": "korean", "fr": "french", "ja": "japanese", "pt": "portuguese", "tr": "turkish",
+    "ko": "korean", "fr": "french", "ja": "japanese", "pt": "portuguese", "pt-br": "portuguese", "tr": "turkish",
     "pl": "polish", "ca": "catalan", "nl": "dutch", "ar": "arabic", "sv": "swedish",
     "it": "italian", "id": "indonesian", "hi": "hindi", "fi": "finnish", "vi": "vietnamese",
     "he": "hebrew", "uk": "ukrainian", "el": "greek", "ms": "malay", "cs": "czech",
@@ -52,6 +52,14 @@ SAMPLE_TEXTS: dict[str, tuple[str, str]] = {
     "es": (
         "Hola. Hoy hace un día claro y tranquilo. El viento cruza las montañas, las hojas se mueven junto al río y podemos conversar despacio frente al fuego.",
         "Al amanecer, Javier camina por el viejo camino hacia el castillo. Una brisa fresca golpea la puerta, mientras la leña seca cruje suavemente en la chimenea.",
+    ),
+    "pt": (
+        "Ola. Hoje e um dia calmo junto ao rio, o vento passa pelas montanhas e podemos conversar devagar perto do fogo.",
+        "De manha, Jorge caminha pela estrada antiga em direcao ao castelo, enquanto a lenha seca crepita suavemente na lareira.",
+    ),
+    "pt-br": (
+        "Ola. Hoje esta um dia tranquilo perto do rio, o vento passa pelas montanhas e a gente pode conversar devagar junto ao fogo.",
+        "De manha, Jorge caminha pela estrada velha ate o castelo, enquanto a lenha seca estala baixinho na lareira.",
     ),
     "de": (
         "Hallo. Heute ist ein ruhiger Tag am Fluss, der Wind weht durch die Berge und wir können am Feuer leise sprechen.",
@@ -123,6 +131,7 @@ _COMMON_ROWS: list[tuple[str, str, str, str, tuple[str, ...]]] = [
     ("ko", "Korean", "Korean", "ko", ()),
     ("ja", "Japanese", "Japanese", "ja", ()),
     ("pt", "Portuguese", "Portuguese", "pt", ("português", "portugues")),
+    ("pt-br", "Brazilian Portuguese", "Portuguese", "pt", ("brasileiro", "portugues brasileiro", "brazilian portuguese")),
     ("tr", "Turkish", "Turkish", "tr", ("turkce", "türkçe")),
     ("ca", "Catalan", "Catalan", "ca", ()),
     ("nl", "Dutch", "Dutch", "nl", ()),

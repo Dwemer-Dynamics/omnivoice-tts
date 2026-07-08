@@ -33,10 +33,7 @@ $action = (string)($body['action'] ?? '');
 $commands = [];
 $label = '';
 
-if ($action === 'start_service') {
-    $commands[] = [$root . '/start-gpu.sh'];
-    $label = 'Start OmniVoice service';
-} elseif ($action === 'doctor') {
+if ($action === 'doctor') {
     $commands[] = [$python, 'omnivoice_cli.py', 'doctor', '--json', 'diagnostics/latest.json'];
     $label = 'Run doctor';
 } elseif ($action === 'verify') {

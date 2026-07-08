@@ -7,12 +7,14 @@ import logging
 import os
 import re
 import shutil
-import uuid
+import subprocess
+import sys
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from threading import Lock, RLock
+from threading import Lock, RLock, Thread
 from urllib import request as urllib_request
 from urllib.error import HTTPError, URLError
 
@@ -40,10 +42,12 @@ VOICES_ROOT = BASE_DIR / "voices"
 PROFILES_DIR = BASE_DIR / "languages"
 CONFIG_PATH = BASE_DIR / "config.json"
 SAMPLE_RATE_FALLBACK = 24000
-API_VERSION = "0.3.2"
+API_VERSION = "0.4.0"
 REFERENCE_SAMPLE_RATE = 24000
 DEFAULT_STT_ENDPOINT = "http://127.0.0.1:8022/v1/audio/transcriptions"
 FALLBACK_STT_ENDPOINTS = ("http://127.0.0.1:8082/v1/audio/transcriptions",)
+DEFAULT_CHIM_VOICES_DIR = Path("/var/www/html/HerikaServer/data/voices")
+MANAGEMENT_JOBS_DIR = BASE_DIR / "diagnostics" / "management_jobs"
 
 
 logging.basicConfig(
@@ -174,12 +178,36 @@ def voice_library_signature(language_dir: Path) -> tuple | None:
     return (str(language_dir), root_mtime, tuple(entries))
 
 
+def language_profiles_signature(profiles_dir: Path) -> tuple | None:
+    if not profiles_dir.is_dir():
+        return None
+
+    entries: list[tuple[str, int, int]] = []
+    try:
+        paths = sorted(profiles_dir.glob("*.json"), key=lambda item: item.name.casefold())
+    except OSError:
+        return None
+
+    for path in paths:
+        try:
+            stat = path.stat()
+        except OSError:
+            continue
+        entries.append((path.name, stat.st_mtime_ns, stat.st_size))
+    return (str(profiles_dir), tuple(entries))
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def configured_chim_voice_source() -> Path:
+    configured = os.environ.get("CHIM_VOICES_DIR", "").strip()
+    return Path(configured).expanduser() if configured else DEFAULT_CHIM_VOICES_DIR
 
 
 def normalized_voice_id_from_upload(filename: str, explicit_name: str | None) -> str:
@@ -436,12 +464,14 @@ def write_imported_voice(
 
 def resolve_optional_language(language: str | None) -> LanguageProfile:
     requested = str(language or "").strip()
-    if requested == "":
-        return runtime.active_language
-    try:
-        return resolve_profile(requested, PROFILES_DIR, runtime.language_profiles)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    with runtime.lock:
+        runtime.sync_language_profiles_if_changed_unlocked()
+        if requested == "":
+            return runtime.active_language
+        try:
+            return resolve_profile(requested, PROFILES_DIR, runtime.language_profiles)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 def voice_library_items(profile: LanguageProfile) -> list[dict]:
@@ -498,24 +528,60 @@ class RuntimeState:
     def __init__(self) -> None:
         self.lock = RLock()
         self.config = load_runtime_config(CONFIG_PATH)
-        self.language_profiles = load_profiles(PROFILES_DIR)
-        self.active_language = resolve_profile(
-            str(self.config.get("active_language", "sk")),
-            PROFILES_DIR,
-            self.language_profiles,
-        )
+        self.language_profiles: dict[str, LanguageProfile] = {}
+        self.language_profiles_signature: tuple | None = None
+        self.active_language: LanguageProfile | None = None
         self.voices: dict[str, VoiceProfile] = {}
         self.voice_aliases: dict[str, str] = {}
         self.voice_names: list[str] = []
         self.default_voice: str | None = None
         self.voice_library_signature: tuple | None = None
+        self.reload_language_profiles_unlocked()
         self.reload_voices_unlocked()
 
     @property
     def active_voice_dir(self) -> Path:
+        if self.active_language is None:
+            raise RuntimeError("No active language profile is loaded.")
         return VOICES_ROOT / self.active_language.id
 
+    def reload_language_profiles_unlocked(self) -> None:
+        profiles = load_profiles(PROFILES_DIR)
+        requested_active = (
+            self.active_language.id
+            if self.active_language is not None
+            else str(self.config.get("active_language", "sk"))
+        )
+        try:
+            active = resolve_profile(requested_active, PROFILES_DIR, profiles)
+        except KeyError:
+            active = profiles[sorted(profiles)[0]]
+
+        self.language_profiles = profiles
+        self.active_language = active
+        self.language_profiles_signature = language_profiles_signature(PROFILES_DIR)
+
+    def sync_language_profiles_if_changed_unlocked(self) -> bool:
+        current = language_profiles_signature(PROFILES_DIR)
+        if current == self.language_profiles_signature:
+            return False
+
+        previous_ids = set(self.language_profiles)
+        active_id = self.active_language.id if self.active_language is not None else ""
+        self.reload_language_profiles_unlocked()
+        changed_ids = sorted(set(self.language_profiles).symmetric_difference(previous_ids))
+        log.info(
+            "Language profile change detected; active=%s, changed=%s.",
+            self.active_language.id,
+            ", ".join(changed_ids) if changed_ids else "metadata",
+        )
+        if active_id != self.active_language.id:
+            self.reload_voices_unlocked()
+        return True
+
     def reload_voices_unlocked(self) -> None:
+        if self.active_language is None:
+            self.reload_language_profiles_unlocked()
         voices, aliases = discover_voices(self.active_voice_dir)
         names = list(voices.keys())
         preferred = str(self.config.get("preferred_default_voice", "")).strip()
@@ -541,9 +607,11 @@ class RuntimeState:
 
     def reload_voices(self) -> None:
         with self.lock:
+            self.sync_language_profiles_if_changed_unlocked()
             self.reload_voices_unlocked()
 
     def sync_voices_if_changed_unlocked(self) -> bool:
+        self.sync_language_profiles_if_changed_unlocked()
         current = voice_library_signature(self.active_voice_dir)
         if current == self.voice_library_signature:
             return False
@@ -595,6 +663,7 @@ class RuntimeState:
 
     def switch_language(self, requested: str) -> LanguageProfile:
         with self.lock:
+            self.sync_language_profiles_if_changed_unlocked()
             profile = resolve_profile(requested, PROFILES_DIR, self.language_profiles)
             self.active_language = profile
             self.config["active_language"] = profile.id
@@ -717,6 +786,283 @@ class TTSSettingsRequest(BaseModel):
     enable_text_splitting: bool | None = None
 
 
+class EnsureLanguageRequest(BaseModel):
+    language: str = Field(min_length=1)
+    scope: str = "chim_full"
+    voices: list[str] = Field(default_factory=list)
+    fallback_male: str | None = None
+    fallback_female: str | None = None
+    make_active: bool = True
+    start: bool = True
+    force: bool = False
+
+
+def source_voice_ids() -> tuple[set[str], Path | None]:
+    source_dir = configured_chim_voice_source()
+    if not source_dir.is_dir():
+        return set(), source_dir
+    voice_ids = {
+        path.stem
+        for path in source_dir.iterdir()
+        if path.is_file()
+        and path.suffix.casefold() == ".wav"
+        and voice_id_problem(path.stem) is None
+    }
+    return voice_ids, source_dir
+
+
+def ready_voice_ids(profile: LanguageProfile) -> set[str]:
+    return {
+        item["voice_id"]
+        for item in voice_library_items(profile)
+        if bool(item.get("runtime_ready"))
+    }
+
+
+def normalize_requested_voices(values: list[str]) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        voice = str(value or "").strip()
+        if not voice:
+            continue
+        if voice_id_problem(voice) is not None:
+            continue
+        key = voice.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        normalized.append(voice)
+    return normalized
+
+
+def requested_voice_set(request: EnsureLanguageRequest) -> list[str]:
+    values = list(request.voices)
+    if request.fallback_male:
+        values.append(request.fallback_male)
+    if request.fallback_female:
+        values.append(request.fallback_female)
+    return normalize_requested_voices(values)
+
+
+def language_readiness(profile: LanguageProfile, scope: str, requested_voices: list[str]) -> dict:
+    scope = scope.strip().casefold().replace("-", "_") or "chim_full"
+    ready = ready_voice_ids(profile)
+    items = voice_library_items(profile)
+    source_ids, source_dir = source_voice_ids()
+    source_lower = {item.casefold(): item for item in source_ids}
+    ready_lower = {item.casefold(): item for item in ready}
+    requested_lower = {item.casefold(): item for item in requested_voices}
+
+    missing_requested = sorted(
+        requested_lower[key]
+        for key in requested_lower
+        if key not in ready_lower
+    )
+    missing_source = sorted(
+        requested_lower[key]
+        for key in requested_lower
+        if key not in source_lower
+    )
+
+    if scope in {"active_only", "switch_only"}:
+        is_ready = True
+        reason = "profile_available"
+    elif scope in {"voice_set", "generic", "generic_defaults"}:
+        is_ready = bool(requested_voices) and not missing_requested
+        reason = "requested_voices_ready" if is_ready else "requested_voices_missing"
+    elif scope in {"chim_full", "full", "skyrim_full"}:
+        expected = source_ids
+        missing_full = sorted(expected - ready, key=lambda item: item.casefold())
+        is_ready = bool(expected) and not missing_full
+        reason = "full_library_ready" if is_ready else "full_library_missing"
+        return {
+            "ready": is_ready,
+            "reason": reason,
+            "scope": "chim_full",
+            "voice_count": len(ready),
+            "total_voice_folders": len(items),
+            "expected_voice_count": len(expected),
+            "missing_count": len(missing_full),
+            "missing_sample": missing_full[:20],
+            "source_directory": str(source_dir) if source_dir is not None else "",
+            "source_available": source_dir is not None and source_dir.is_dir(),
+        }
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_scope",
+                "scope": scope,
+                "valid_scopes": ["chim_full", "voice_set", "active_only"],
+            },
+        )
+
+    return {
+        "ready": is_ready,
+        "reason": reason,
+        "scope": scope,
+        "voice_count": len(ready),
+        "total_voice_folders": len(items),
+        "expected_voice_count": len(requested_voices),
+        "missing_count": len(missing_requested),
+        "missing_sample": missing_requested[:20],
+        "missing_source_sample": missing_source[:20],
+        "source_directory": str(source_dir) if source_dir is not None else "",
+        "source_available": source_dir is not None and source_dir.is_dir(),
+    }
+
+
+def safe_job_id(profile_id: str, scope: str, voices: list[str]) -> str:
+    key = json.dumps(
+        {"language": profile_id, "scope": scope, "voices": sorted(voices, key=str.casefold)},
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+    return f"{profile_id}-{scope}-{digest}"
+
+
+def job_path(job_id: str) -> Path:
+    return MANAGEMENT_JOBS_DIR / f"{job_id}.json"
+
+
+def load_job(job_id: str) -> dict | None:
+    path = job_path(job_id)
+    if not path.is_file():
+        return None
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def save_job(job: dict) -> None:
+    MANAGEMENT_JOBS_DIR.mkdir(parents=True, exist_ok=True)
+    path = job_path(str(job["id"]))
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(job, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
+
+
+def job_is_active(job: dict | None) -> bool:
+    if not isinstance(job, dict):
+        return False
+    return str(job.get("status", "")).casefold() in {"queued", "running"}
+
+
+def build_language_commands(profile: LanguageProfile, scope: str, voices: list[str], force: bool) -> list[list[str]]:
+    python = sys.executable
+    scope = scope.strip().casefold().replace("-", "_") or "chim_full"
+    commands: list[list[str]] = []
+
+    if scope in {"active_only", "switch_only"}:
+        return commands
+
+    if scope in {"chim_full", "full", "skyrim_full"}:
+        import_cmd = [python, "omnivoice_cli.py", "import-chim", "--language", profile.id, "--all"]
+        build_cmd = [python, "omnivoice_cli.py", "build-library", "--language", profile.id, "--all"]
+    else:
+        if not voices:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "voices_required",
+                    "hint": "voice_set preparation requires at least one requested voice.",
+                },
+            )
+        import_cmd = [python, "omnivoice_cli.py", "import-chim", "--language", profile.id]
+        build_cmd = [python, "omnivoice_cli.py", "build-library", "--language", profile.id]
+        for voice in voices:
+            import_cmd.extend(["--voice", voice])
+            build_cmd.extend(["--voice", voice])
+
+    if force:
+        import_cmd.append("--force")
+        build_cmd.append("--force")
+    commands.append(import_cmd)
+    commands.append(build_cmd)
+    return commands
+
+
+def run_management_job(job_id: str) -> None:
+    job = load_job(job_id)
+    if not job:
+        return
+
+    log_path = Path(str(job["log_path"]))
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    job["status"] = "running"
+    job["started_at"] = utc_now()
+    save_job(job)
+
+    returncode = 0
+    with log_path.open("a", encoding="utf-8", errors="replace") as handle:
+        handle.write(f"Started: {job['started_at']}\n\n")
+        for index, command in enumerate(job.get("commands", []), start=1):
+            if returncode != 0:
+                break
+            job["current_step"] = index
+            job["current_command"] = command
+            save_job(job)
+            handle.write("$ " + " ".join(str(part) for part in command) + "\n")
+            handle.flush()
+            process = subprocess.Popen(
+                [str(part) for part in command],
+                cwd=str(BASE_DIR),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"},
+            )
+            assert process.stdout is not None
+            for line in process.stdout:
+                handle.write(line)
+                handle.flush()
+            returncode = int(process.wait())
+            handle.write(f"\nexit={returncode}\n\n")
+            handle.flush()
+
+        finished_at = utc_now()
+        handle.write(f"Finished: {finished_at} exit={returncode}\n")
+
+    job["status"] = "complete" if returncode == 0 else "failed"
+    job["returncode"] = returncode
+    job["finished_at"] = finished_at
+    job["current_command"] = None
+
+    try:
+        profile = resolve_profile(str(job.get("language", "")), PROFILES_DIR, runtime.language_profiles)
+        if bool(job.get("make_active", True)):
+            with generation_lock:
+                runtime.switch_language(profile.id)
+        elif profile.id == runtime.active_language.id:
+            with generation_lock:
+                runtime.reload_voices()
+        voices = normalize_requested_voices([str(item) for item in job.get("voices", [])])
+        job["summary"] = language_readiness(profile, str(job.get("scope", "chim_full")), voices)
+    except Exception as exc:
+        job["summary_error"] = f"{type(exc).__name__}: {exc}"
+
+    save_job(job)
+
+
+def start_management_job(job: dict) -> dict:
+    existing = load_job(str(job["id"]))
+    if job_is_active(existing):
+        return existing
+    save_job(job)
+    thread = Thread(target=run_management_job, args=(str(job["id"]),), daemon=True)
+    thread.start()
+    return job
+
+
 @app.get("/")
 def root() -> dict:
     with runtime.lock:
@@ -804,6 +1150,89 @@ def voice_libraries() -> list[dict]:
         return libraries
 
 
+@app.get("/management_jobs")
+def management_jobs() -> list[dict]:
+    if not MANAGEMENT_JOBS_DIR.is_dir():
+        return []
+    jobs: list[dict] = []
+    for path in sorted(MANAGEMENT_JOBS_DIR.glob("*.json"), key=lambda item: item.name.casefold()):
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(loaded, dict):
+            jobs.append(loaded)
+    return jobs
+
+
+@app.post("/ensure_language")
+def ensure_language(request: EnsureLanguageRequest) -> dict:
+    with runtime.lock:
+        runtime.sync_language_profiles_if_changed_unlocked()
+        try:
+            profile = resolve_profile(request.language, PROFILES_DIR, runtime.language_profiles)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    scope = request.scope.strip().casefold().replace("-", "_") or "chim_full"
+    voices = requested_voice_set(request)
+    summary = language_readiness(profile, scope, voices)
+
+    if bool(summary.get("ready")):
+        if request.start and request.make_active:
+            with generation_lock:
+                runtime.switch_language(profile.id)
+        return {
+            "ok": True,
+            "status": "ready",
+            "language": profile.public_dict(),
+            "summary": summary,
+            "job": None,
+        }
+
+    if not request.start:
+        return {
+            "ok": True,
+            "status": "not_ready",
+            "language": profile.public_dict(),
+            "summary": summary,
+            "job": None,
+        }
+
+    commands = build_language_commands(profile, scope, voices, request.force)
+    if not commands:
+        return {
+            "ok": True,
+            "status": "ready",
+            "language": profile.public_dict(),
+            "summary": summary,
+            "job": None,
+        }
+
+    job_id = safe_job_id(profile.id, scope, voices)
+    job = {
+        "id": job_id,
+        "status": "queued",
+        "label": f"Prepare {profile.display_name} ({scope})",
+        "language": profile.id,
+        "scope": scope,
+        "voices": voices,
+        "make_active": request.make_active,
+        "created_at": utc_now(),
+        "commands": commands,
+        "log_path": str(MANAGEMENT_JOBS_DIR / f"{job_id}.log"),
+        "summary": summary,
+    }
+    job = start_management_job(job)
+    return {
+        "ok": True,
+        "status": "building" if job_is_active(job) else str(job.get("status", "queued")),
+        "language": profile.public_dict(),
+        "summary": summary,
+        "job": job,
+    }
+
+
 @app.get("/speakers_list")
 def speakers_list(language: str | None = Query(default=None)) -> list[str]:
     with runtime.lock:
@@ -880,6 +1309,7 @@ async def upload_sample(
     reference_text: str | None = Form(default=None),
     display_name: str | None = Form(default=None),
     force: bool = Form(default=False),
+    make_default: bool = Form(default=False),
 ) -> dict:
     source_bytes = await wavFile.read()
     if not source_bytes:
@@ -914,6 +1344,10 @@ async def upload_sample(
         display_name=str(display_name or "").strip() or voice_id,
         force=force,
     )
+
+    if make_default:
+        runtime.config["preferred_default_voice"] = voice_id
+        save_runtime_config(CONFIG_PATH, runtime.config)
 
     if profile.id == runtime.active_language.id:
         with generation_lock:

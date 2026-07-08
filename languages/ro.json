@@ -1,0 +1,16 @@
+{
+  "id": "ro",
+  "display_name": "Romanian",
+  "omnivoice_language": "Romanian",
+  "omnivoice_language_id": "ro",
+  "whisper_language": "romanian",
+  "aliases": ["română", "romana"],
+  "bootstrap_text": "Bună. Astăzi este o zi liniștită lângă râu, vântul trece peste munți și putem vorbi încet lângă foc.",
+  "master_text": "Dimineața, George merge pe drumul vechi spre castel, în timp ce lemnul uscat trosnește în șemineu.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

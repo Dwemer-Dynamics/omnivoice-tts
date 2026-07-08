@@ -1,0 +1,16 @@
+{
+  "id": "pl",
+  "display_name": "Polish",
+  "omnivoice_language": "Polish",
+  "omnivoice_language_id": "pl",
+  "whisper_language": "polish",
+  "aliases": ["polski", "polska"],
+  "bootstrap_text": "Cześć. Dzisiaj jest spokojny dzień nad rzeką, wiatr porusza trawą przy brzegu i możemy cicho porozmawiać przy ogniu.",
+  "master_text": "Rano Jerzy idzie starą drogą w stronę zamku, a suche drewno cicho trzaska w kominku.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

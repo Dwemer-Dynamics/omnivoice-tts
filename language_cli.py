@@ -64,7 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("list", help="List language profiles and runtime-ready voice counts.")
     subparsers.add_parser("show", help="Show the configured active language.")
     subparsers.add_parser("validate", help="Validate every enabled language JSON profile.")
-    presets_parser = subparsers.add_parser("presets", help="List the 96 recommended OmniVoice+Whisper language presets.")
+    presets_parser = subparsers.add_parser("presets", help="List recommended OmniVoice+Whisper language presets.")
     presets_parser.add_argument("--json", action="store_true", help="Print preset metadata as JSON.")
 
     profile_parser = subparsers.add_parser(

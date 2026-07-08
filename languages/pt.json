@@ -1,0 +1,16 @@
+{
+  "id": "pt",
+  "display_name": "Portuguese",
+  "omnivoice_language": "Portuguese",
+  "omnivoice_language_id": "pt",
+  "whisper_language": "portuguese",
+  "aliases": ["pt-pt", "portugues", "portuguese portugal"],
+  "bootstrap_text": "Ola. Hoje e um dia calmo junto ao rio, o vento passa pelas montanhas e podemos conversar devagar perto do fogo.",
+  "master_text": "De manha, Jorge caminha pela estrada antiga em direcao ao castelo, enquanto a lenha seca crepita suavemente na lareira.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

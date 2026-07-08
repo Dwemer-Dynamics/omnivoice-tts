@@ -8,15 +8,15 @@ Included:
 
 - Linux/WSL installer for `/home/dwemer/omnivoice-tts`.
 - Isolated Python virtual environment.
-- Optional startup through `start.sh` symlink.
+- Automatic DwemerDistro startup while the component is installed.
 - FastAPI XTTS-compatible service on `127.0.0.1:8021`.
 - Active voice-library auto-sync on API requests after voice folders are added, updated, or removed.
 - CLI for doctor, language selection, CHIM import, custom voices, calibration, library audit, export, uninstall, and server startup.
-- Language catalog commands for listing 96 recommended OmniVoice+Whisper presets and enabling selected presets as editable JSON profiles.
-- `conf.sh` exposes the 96-preset listing and preset-enable flow for launcher Configure users.
-- End-to-end `verify` command for doctor, service health, loopback binding, voice library audit, legacy XTTS-compatible endpoint checks, synthesis smoke checks, and optional DwemerDistro service listener/database/site connector checks.
+- Language catalog developer commands for listing recommended OmniVoice+Whisper presets and enabling selected presets as editable JSON profiles.
+- `conf.sh` exposes installed-language selection, diagnostics, voice import/build workflows, exports, and uninstall for launcher Configure users.
+- End-to-end `verify` command for doctor, service health, loopback binding, voice library audit, XTTS-compatible service contract checks, synthesis smoke checks, and optional DwemerDistro service listener/database/site connector checks.
 - `verify-lifecycle` command for temporary-directory installer, uninstall, export safety, and engine compatibility-warning checks.
-- `verify-lifecycle` also checks the language catalog flow: 96-preset listing, native preset enablement, placeholder-preset refusal by default, explicit placeholder enablement for editing, and calibration refusal while placeholder text remains.
+- `verify-lifecycle` also checks the language catalog developer flow: preset listing, native preset enablement, placeholder-preset refusal by default, explicit placeholder enablement for editing, and calibration refusal while placeholder text remains.
 - DwemerDistro launcher install card and connector apply support.
 - Local Apache web control panel published at `/OmniVoice/` during install when the web root is available.
 - CHIM/Dialectic Herika-style `xtts-fastapi` connector routing.
@@ -40,9 +40,9 @@ Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 - `omnivoice_cli.py verify --language sk --write-library-report --with-sites` passed against required DwemerDistro service listeners, live CHIM, Dialectic, and Stobe database connector rows/profile assignments, and PHP connector paths. CHIM wrote WAV with Skyrim VoiceID `malenord`; Dialectic and Stobe wrote WAV with generic `default_male` routing.
 - `omnivoice_cli.py verify-lifecycle` passed in WSL, covering uninstall preservation, explicit voice removal, idempotent installer reruns, Chatterbox/PocketTTS/XTTS export manifests, engine compatibility warnings, overwrite refusal for unowned files, `--force`, and zip export.
 - Exact VoiceID synthesis, missing male/female fallback synthesis, and temporary custom voice add/synthesize/cleanup were verified.
-- The language catalog flow was verified through `verify-lifecycle`, including `languages presets` reporting 96 recommended presets.
-- `conf.sh` scripted smoke tests verified option 6 lists the 96-preset catalog and option 7 refuses a placeholder preset by default without creating `haw.json`.
-- `conf.sh` startup controls were removed; installed OmniVoice components start with DwemerDistro.
+- The language catalog flow was verified through `verify-lifecycle`, including `languages presets` reporting the expected recommended preset count.
+- `conf.sh` scripted smoke tests verified installed-language listing and active-language selection prompts.
+- `start-gpu.sh` already-running behavior was verified.
 - Launcher apply updated CHIM, Stobe, and Dialectic connector rows in the live WSL databases.
 
 Still not verified:

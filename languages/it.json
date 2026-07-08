@@ -1,0 +1,16 @@
+{
+  "id": "it",
+  "display_name": "Italian",
+  "omnivoice_language": "Italian",
+  "omnivoice_language_id": "it",
+  "whisper_language": "italian",
+  "aliases": ["italiano"],
+  "bootstrap_text": "Ciao. Oggi è una giornata tranquilla vicino al fiume, il vento passa tra le montagne e possiamo parlare piano accanto al fuoco.",
+  "master_text": "Al mattino Giorgio cammina lungo la vecchia strada verso il castello, mentre la legna secca scoppietta nel camino.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

@@ -1,0 +1,16 @@
+{
+  "id": "fr",
+  "display_name": "French",
+  "omnivoice_language": "French",
+  "omnivoice_language_id": "fr",
+  "whisper_language": "french",
+  "aliases": ["francais", "français"],
+  "bootstrap_text": "Bonjour. Aujourd'hui est une journée calme au bord de la rivière, le vent passe sur les montagnes et nous pouvons parler doucement près du feu.",
+  "master_text": "Le matin, Georges marche sur le vieux chemin vers le château, tandis que le bois sec crépite dans la cheminée.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

@@ -1,0 +1,16 @@
+{
+  "id": "ja",
+  "display_name": "Japanese",
+  "omnivoice_language": "Japanese",
+  "omnivoice_language_id": "ja",
+  "whisper_language": "japanese",
+  "aliases": [],
+  "bootstrap_text": "こんにちは。今日は川のそばで静かな一日です。風が山を越えて吹き、私たちは火の近くで落ち着いて話すことができます。",
+  "master_text": "朝、健二は古い道を通って城へ向かいます。門に風が当たり、暖炉では乾いた木が静かに音を立てています。",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}
