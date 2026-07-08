@@ -312,11 +312,11 @@ Verification:
 Deliverables:
 
 - Launcher can apply OmniVoice to CHIM by creating or updating a `core_tts_connector` row.
-- CHIM connector should use existing XTTS FastAPI driver:
+- CHIM connector should use the native OmniVoice driver:
 
 ```text
-driver = xtts-fastapi
-label = ddistro omnivoice
+driver = omnivoice
+label = OmniVoice Default
 url = http://127.0.0.1:8021
 voice_field = voiceid
 metadata.language = selected language
@@ -366,11 +366,11 @@ Verification:
 Deliverables:
 
 - Launcher can apply OmniVoice to Dialectic.
-- Dialectic can use the Herika-style `xtts-fastapi` connector:
+- Dialectic can use the Herika-style native OmniVoice connector:
 
 ```text
-driver = xtts-fastapi
-label = ddistro omnivoice
+driver = omnivoice
+label = OmniVoice Default
 url = http://127.0.0.1:8021
 voice_field = voiceid
 metadata.language = selected language

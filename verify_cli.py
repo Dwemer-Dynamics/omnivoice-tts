@@ -524,7 +524,7 @@ def check_herika_connector_row(database: str, target_name: str) -> dict[str, Any
         WITH connector AS (
             SELECT id, driver, label, url, voice_field
             FROM core_tts_connector
-            WHERE label = 'ddistro omnivoice'
+            WHERE label = 'OmniVoice Default'
             ORDER BY id
             LIMIT 1
         )
@@ -553,8 +553,8 @@ def check_herika_connector_row(database: str, target_name: str) -> dict[str, Any
     fields = item["row"]
     item["ok"] = (
         len(fields) >= 9
-        and fields[1] == "xtts-fastapi"
-        and fields[2] == "ddistro omnivoice"
+        and fields[1] == "omnivoice"
+        and fields[2] == "OmniVoice Default"
         and fields[3] == "http://127.0.0.1:8021"
         and fields[4] == "voiceid"
         and int(fields[7] or "0") == int(fields[8] or "0")
@@ -630,7 +630,7 @@ $serverDir = rtrim($argv[1], '/');
 $nameGlobal = $argv[2];
 $voiceId = $argv[3];
 $language = $argv[4];
-$connector = $serverDir . '/tts/tts-xtts-fastapi.php';
+$connector = $serverDir . '/tts/tts-omnivoice.php';
 if (!is_file($connector)) {
     fwrite(STDERR, "missing connector: $connector\n");
     exit(2);
@@ -643,11 +643,10 @@ if (!class_exists('Logger')) {
     }
 }
 $GLOBALS['TTS'] = [
-    'XTTSFASTAPI' => [
+    'OMNIVOICE' => [
         'endpoint' => 'http://127.0.0.1:8021',
         'voiceid' => $voiceId,
         'language' => $language,
-        'RESET' => false,
     ],
     'FORCED_VOICE_DEV' => '',
     'FORCED_LANG_DEV' => '',

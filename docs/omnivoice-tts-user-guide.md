@@ -166,11 +166,11 @@ python omnivoice_cli.py calibrate --language sk --voice my_custom_voice
 Use the DwemerDistro first-run or voice-engine setup flow and select
 `Multilingual OmniVoice`.
 
-The launcher applies:
+The launcher applies native OmniVoice connectors:
 
-- CHIM/Skyrim: `xtts-fastapi` connector at `http://127.0.0.1:8021`.
-- Dialectic/Fallout: `xtts-fastapi` connector at `http://127.0.0.1:8021`.
-- Stobe/Kenshi: native `omnivoice` local-provider connector at
+- CHIM/Skyrim: `omnivoice` connector at `http://127.0.0.1:8021`.
+- Dialectic/Fallout: `omnivoice` connector at `http://127.0.0.1:8021`.
+- Stobe/Kenshi: `omnivoice` local-provider connector at
   `http://127.0.0.1:8021`, with generic `default_male` and `default_female`
   fallback VoiceIDs.
 
@@ -195,7 +195,7 @@ Expected service binding is `127.0.0.1:8021`. The service should not bind to
 `verify` is the practical smoke test before release or support triage. It writes
 `diagnostics/verify_latest.json` and checks doctor, service health,
 `/provider_info`, loopback binding, selected-language voice audit,
-XTTS-compatible service contract endpoints, extended speaker metadata, and
+OmniVoice service contract endpoints, extended speaker metadata, and
 fallback voice synthesis.
 
 Use `--with-sites` for a full DwemerDistro check. It validates the live
