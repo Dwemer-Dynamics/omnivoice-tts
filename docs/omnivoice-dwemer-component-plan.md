@@ -42,7 +42,7 @@ Verified locally:
 - WSL reports CUDA visibility through `nvidia-smi`.
 - Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `127.0.0.1:8021`.
 - `/var/www/html/HerikaServer/data/voices` and `/var/www/html/StobeServer` exist in the live distro.
-- Private GitHub staging repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated. Default branch `main` currently points at `2f2ea2f`; keep it private until publication permission and model/tokenizer license review are complete.
+- Private GitHub staging repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated. Keep it private until publication permission and model/tokenizer license review are complete.
 - Upstream `k2-fsa/OmniVoice` exists on Hugging Face, and the pinned Python packages are currently discoverable by `pip index`.
 - Local WSL install from the unpublished checkout succeeded at `/home/dwemer/omnivoice-tts`.
 - OmniVoice venv dependency install completed and `python -m pip check` reported no broken requirements.

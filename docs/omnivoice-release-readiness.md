@@ -100,7 +100,7 @@ tool permission and upstream pretrained-model/tokenizer terms are.
 Private staging status:
 
 - `Dwemer-Dynamics/omnivoice-tts` exists as a private GitHub repo.
-- The private staging repo is populated on `main` at `2f2ea2f`.
+- The private staging repo is populated on `main`.
 - The repo contains component source, docs, release-readiness notes, and empty
   runtime directories via `.gitkeep`.
 - The repo does not contain generated voices, CHIM source WAVs, model weights,
