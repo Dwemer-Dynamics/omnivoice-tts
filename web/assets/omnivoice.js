@@ -174,10 +174,22 @@ function updatePresetMeta() {
 }
 
 async function loadLanguages() {
-  state.languages = await jsonApi("languages.php");
-  state.activeLanguage = state.languages.active_language || state.activeLanguage;
-  renderProfileOptions();
-  renderPresetOptions();
+  try {
+    const data = await jsonApi("languages.php");
+    if (!Array.isArray(data.profiles)) {
+      throw new Error(data.error || "Language API did not return installed profiles.");
+    }
+    state.languages = data;
+    state.activeLanguage = state.languages.active_language || state.activeLanguage;
+    renderProfileOptions();
+    renderPresetOptions();
+  } catch (error) {
+    console.error(error);
+    state.languages = { profiles: [], presets: [] };
+    renderProfileOptions();
+    renderPresetOptions();
+    setText("languageMeta", "Could not load installed languages. Check api/languages.php and Apache logs.", "fail");
+  }
 }
 
 async function languageAction(action, extra = {}) {
@@ -187,7 +199,8 @@ async function languageAction(action, extra = {}) {
     alert(result.result?.stderr || result.error || "Language action failed.");
     return false;
   }
-  await Promise.all([loadLanguages(), loadStatus()]);
+  await loadLanguages();
+  await loadStatus().catch(console.error);
   return true;
 }
 
@@ -335,10 +348,11 @@ function wireEvents() {
 
 async function boot() {
   wireEvents();
-  await Promise.all([loadStatus(), loadLanguages(), loadJobs()]);
-  await loadVoices(false);
-  setInterval(loadStatus, 10000);
-  setInterval(loadJobs, 5000);
+  await loadLanguages();
+  await Promise.allSettled([loadStatus(), loadJobs()]);
+  await loadVoices(false).catch(console.error);
+  setInterval(() => loadStatus().catch(console.error), 10000);
+  setInterval(() => loadJobs().catch(console.error), 5000);
 }
 
 boot().catch((error) => {

@@ -243,7 +243,7 @@ function start_job(string $label, array $commands): array
         $script .= "echo\n";
         $script .= "echo " . escapeshellarg('$ ' . implode(' ', $command)) . "\n";
         $script .= shell_join($command) . "\n";
-        $script .= "code=$?\n";
+        $script .= "code=\$?\n";
         $script .= "if [ \"\$code\" -ne 0 ]; then\n";
         $script .= "  echo\n";
         $script .= "  echo \"Command failed: exit=\$code\"\n";

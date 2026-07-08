@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib/common.php';
 $root = omnivoice_root();
+$assetVersion = static function (string $path): string {
+    $fullPath = __DIR__ . '/' . ltrim($path, '/');
+    $version = is_file($fullPath) ? (string)filemtime($fullPath) : (string)time();
+    return $path . '?v=' . rawurlencode($version);
+};
 ?>
 <!doctype html>
 <html lang="en">
@@ -10,7 +15,7 @@ $root = omnivoice_root();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OmniVoice TTS</title>
-    <link rel="stylesheet" href="assets/omnivoice.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($assetVersion('assets/omnivoice.css'), ENT_QUOTES, 'UTF-8'); ?>">
 </head>
 <body>
     <header class="topbar">
@@ -147,6 +152,6 @@ $root = omnivoice_root();
         <span>Root: <?php echo htmlspecialchars($root, ENT_QUOTES, 'UTF-8'); ?></span>
     </footer>
 
-    <script src="assets/omnivoice.js"></script>
+    <script src="<?php echo htmlspecialchars($assetVersion('assets/omnivoice.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>
