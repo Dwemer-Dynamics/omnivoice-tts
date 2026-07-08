@@ -1,6 +1,7 @@
 fastapi>=0.115,<1
 uvicorn[standard]>=0.34,<1
 pydantic>=2,<3
+python-multipart>=0.0.9,<1
 soundfile>=0.13,<1
 librosa>=0.11,<1
 numpy>=1.26,<3

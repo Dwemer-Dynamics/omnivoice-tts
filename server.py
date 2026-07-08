@@ -1,17 +1,26 @@
 from __future__ import annotations
 
 import io
+import hashlib
 import json
 import logging
+import os
 import re
+import shutil
+import uuid
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock, RLock
+from urllib import request as urllib_request
+from urllib.error import HTTPError, URLError
 
+import librosa
+import numpy as np
 import soundfile as sf
 import torch
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from omnivoice import OmniVoice, OmniVoiceGenerationConfig
 from pydantic import BaseModel, Field
@@ -23,7 +32,7 @@ from language_profiles import (
     resolve_profile,
     save_runtime_config,
 )
-from voice_library import voice_id_problem
+from voice_library import audit_voice_dir, voice_id_problem
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -32,6 +41,9 @@ PROFILES_DIR = BASE_DIR / "languages"
 CONFIG_PATH = BASE_DIR / "config.json"
 SAMPLE_RATE_FALLBACK = 24000
 API_VERSION = "0.3.2"
+REFERENCE_SAMPLE_RATE = 24000
+DEFAULT_STT_ENDPOINT = "http://127.0.0.1:8022/v1/audio/transcriptions"
+FALLBACK_STT_ENDPOINTS = ("http://127.0.0.1:8082/v1/audio/transcriptions",)
 
 
 logging.basicConfig(
@@ -160,6 +172,326 @@ def voice_library_signature(language_dir: Path) -> tuple | None:
     except OSError:
         root_mtime = 0
     return (str(language_dir), root_mtime, tuple(entries))
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def normalized_voice_id_from_upload(filename: str, explicit_name: str | None) -> str:
+    raw = (explicit_name or "").strip()
+    if raw == "":
+        raw = Path(filename.strip()).stem
+    raw = raw.strip()
+    problem = voice_id_problem(raw)
+    if problem is not None:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_voice_id", "voice_id": raw, "reason": problem},
+        )
+    return raw
+
+
+def normalize_reference_audio(audio_bytes: bytes) -> tuple[np.ndarray, float]:
+    try:
+        audio, sample_rate = sf.read(io.BytesIO(audio_bytes), always_2d=False, dtype="float32")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_audio", "detail": f"{type(exc).__name__}: {exc}"},
+        ) from exc
+
+    if getattr(audio, "ndim", 1) == 2:
+        audio = audio.mean(axis=1)
+    if audio.size == 0:
+        raise HTTPException(status_code=400, detail={"error": "empty_audio"})
+
+    duration = float(audio.shape[0] / sample_rate)
+    if sample_rate != REFERENCE_SAMPLE_RATE:
+        audio = librosa.resample(
+            audio,
+            orig_sr=sample_rate,
+            target_sr=REFERENCE_SAMPLE_RATE,
+            res_type="soxr_hq",
+        )
+
+    peak = float(np.max(np.abs(audio)))
+    if peak > 1.0:
+        audio = audio / peak
+
+    return np.asarray(audio, dtype=np.float32), duration
+
+
+def wav_bytes_from_audio(audio: np.ndarray) -> bytes:
+    wav_buffer = io.BytesIO()
+    sf.write(
+        wav_buffer,
+        audio,
+        REFERENCE_SAMPLE_RATE,
+        format="WAV",
+        subtype="PCM_16",
+    )
+    return wav_buffer.getvalue()
+
+
+def parse_text_response(body: bytes) -> str:
+    raw = body.decode("utf-8", errors="replace").strip()
+    if raw == "":
+        return ""
+    try:
+        decoded = json.loads(raw)
+    except json.JSONDecodeError:
+        return " ".join(raw.split())
+    if isinstance(decoded, dict):
+        for key in ("text", "transcript", "transcription"):
+            text = str(decoded.get(key, "")).strip()
+            if text:
+                return " ".join(text.split())
+    return ""
+
+
+def post_multipart_for_transcription(endpoint: str, filename: str, audio_bytes: bytes, language: str) -> str:
+    boundary = "----omnivoice-" + uuid.uuid4().hex
+    parts: list[bytes] = []
+
+    def add_field(name: str, value: str) -> None:
+        parts.append(
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+                f"{value}\r\n"
+            ).encode("utf-8")
+        )
+
+    def add_file(name: str, upload_name: str, content: bytes) -> None:
+        parts.append(
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="{name}"; filename="{upload_name}"\r\n'
+                "Content-Type: audio/wav\r\n\r\n"
+            ).encode("utf-8")
+        )
+        parts.append(content)
+        parts.append(b"\r\n")
+
+    add_file("file", filename, audio_bytes)
+    add_field("model", "parakeet-tdt-0.6b-v3")
+    if language:
+        add_field("language", language)
+    add_field("response_format", "json")
+    parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+    body = b"".join(parts)
+
+    req = urllib_request.Request(
+        endpoint,
+        data=body,
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+    with urllib_request.urlopen(req, timeout=45) as response:
+        return parse_text_response(response.read())
+
+
+def auto_transcribe_reference(audio_bytes: bytes, filename: str, profile: LanguageProfile) -> tuple[str, str, str | None]:
+    configured_endpoint = os.environ.get("OMNIVOICE_STT_ENDPOINT", DEFAULT_STT_ENDPOINT).strip()
+    if configured_endpoint == "":
+        return "", "unavailable", "OMNIVOICE_STT_ENDPOINT is empty"
+
+    endpoints = [configured_endpoint]
+    if configured_endpoint == DEFAULT_STT_ENDPOINT:
+        endpoints.extend(endpoint for endpoint in FALLBACK_STT_ENDPOINTS if endpoint not in endpoints)
+
+    errors: list[str] = []
+    for endpoint in endpoints:
+        try:
+            text = post_multipart_for_transcription(
+                endpoint,
+                filename,
+                audio_bytes,
+                profile.whisper_language or profile.id,
+            )
+        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+            errors.append(f"{endpoint}: {type(exc).__name__}: {exc}")
+            continue
+
+        if not text:
+            errors.append(f"{endpoint}: STT returned an empty transcript")
+            continue
+
+        if text[-1] not in ".!?。！？":
+            text += "."
+        return text, "auto_transcribed", None
+
+    return "", "failed", "; ".join(errors) if errors else "STT failed"
+
+
+def write_imported_voice(
+    *,
+    profile: LanguageProfile,
+    voice_id: str,
+    source_filename: str,
+    source_bytes: bytes,
+    reference_text: str,
+    reference_text_source: str,
+    transcription_error: str | None,
+    display_name: str,
+    force: bool,
+) -> dict:
+    voice_dir = VOICES_ROOT / profile.id / voice_id
+    if voice_dir.exists() and not force:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "voice_exists",
+                "voice_id": voice_id,
+                "language": profile.id,
+                "hint": "Use force=true to overwrite this voice.",
+            },
+        )
+    if voice_dir.exists() and force:
+        calibration_dir = voice_dir / "calibration"
+        if calibration_dir.exists():
+            shutil.rmtree(calibration_dir)
+        for filename in (
+            "reference_stage1.wav",
+            "reference_stage1.txt",
+            "reference_master.wav",
+            "reference_master.txt",
+            "auto_calibration.json",
+        ):
+            path = voice_dir / filename
+            if path.exists():
+                path.unlink()
+
+    voice_dir.mkdir(parents=True, exist_ok=True)
+    source_hash = sha256_bytes(source_bytes)
+    audio_24k, duration = normalize_reference_audio(source_bytes)
+    normalized_wav = wav_bytes_from_audio(audio_24k)
+
+    source_path = voice_dir / "source.wav"
+    reference_ready = reference_text.strip() != ""
+
+    source_path.write_bytes(source_bytes)
+    for wav_name in ("reference.wav", "reference_source.wav", "reference_en.wav"):
+        (voice_dir / wav_name).write_bytes(normalized_wav)
+    if reference_ready:
+        for txt_name in ("reference.txt", "reference_source.txt", "reference_en.txt"):
+            (voice_dir / txt_name).write_text(reference_text.strip() + "\n", encoding="utf-8")
+    else:
+        for txt_name in ("reference.txt", "reference_source.txt", "reference_en.txt"):
+            path = voice_dir / txt_name
+            if path.exists():
+                path.unlink()
+
+    status = "runtime_ready" if reference_ready else "needs_reference_text"
+    metadata = {
+        "voice_id": voice_id,
+        "voice_origin": "tts_studio_upload",
+        "custom_voice": True,
+        "display_name": display_name.strip() or voice_id,
+        "language_profile_id": profile.id,
+        "target_language": profile.display_name,
+        "source_filename": source_filename,
+        "source_sha256": source_hash,
+        "source_size_bytes": len(source_bytes),
+        "source_duration_seconds": round(duration, 3),
+        "reference_sample_rate": REFERENCE_SAMPLE_RATE,
+        "reference_channels": 1,
+        "reference_subtype": "PCM_16",
+        "reference_text": reference_text.strip(),
+        "reference_text_source": reference_text_source,
+        "transcription_provider": (
+            os.environ.get("OMNIVOICE_STT_ENDPOINT", DEFAULT_STT_ENDPOINT).strip()
+            if reference_text_source == "auto_transcribed"
+            else None
+        ),
+        "transcription_error": transcription_error,
+        "status": status,
+        "prepared_at_utc": utc_now(),
+        "calibration": {"status": "not_calibrated"},
+    }
+    (voice_dir / "voice.json").write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    return {
+        "voice_id": voice_id,
+        "language": profile.id,
+        "voice_directory": str(voice_dir),
+        "status": status,
+        "reference_text_source": reference_text_source,
+        "transcription_error": transcription_error,
+        "duration_seconds": round(duration, 3),
+        "source_sha256": source_hash,
+    }
+
+
+def resolve_optional_language(language: str | None) -> LanguageProfile:
+    requested = str(language or "").strip()
+    if requested == "":
+        return runtime.active_language
+    try:
+        return resolve_profile(requested, PROFILES_DIR, runtime.language_profiles)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+def voice_library_items(profile: LanguageProfile) -> list[dict]:
+    language_dir = VOICES_ROOT / profile.id
+    if not language_dir.is_dir():
+        return []
+
+    items: list[dict] = []
+    for directory in sorted(
+        (path for path in language_dir.iterdir() if path.is_dir()),
+        key=lambda path: path.name.casefold(),
+    ):
+        metadata: dict = {}
+        metadata_path = directory / "voice.json"
+        if metadata_path.is_file():
+            try:
+                loaded = json.loads(metadata_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, dict):
+                    metadata = loaded
+            except (OSError, json.JSONDecodeError):
+                metadata = {}
+
+        audit = audit_voice_dir(directory, expected_language_id=profile.id)
+        status = str(metadata.get("status") or audit.status)
+        if audit.runtime_ready:
+            status = "ready" if audit.calibrated else "runtime_ready"
+        elif status == "runtime_ready":
+            status = "needs_reference_text"
+
+        items.append(
+            {
+                "voice_id": directory.name,
+                "display_name": metadata.get("display_name", directory.name),
+                "language": profile.id,
+                "language_profile_id": metadata.get("language_profile_id", profile.id),
+                "status": status,
+                "runtime_ready": audit.runtime_ready,
+                "calibrated": audit.calibrated,
+                "calibration_status": audit.calibration_status,
+                "custom_voice": bool(metadata.get("custom_voice", False)),
+                "reference_wav": str(directory / "reference.wav"),
+                "reference_text": str(directory / "reference.txt"),
+                "reference_text_source": metadata.get("reference_text_source"),
+                "transcription_error": metadata.get("transcription_error"),
+                "errors": list(audit.errors),
+                "warnings": list(audit.warnings),
+                "metadata": metadata,
+            }
+        )
+    return items
 
 
 class RuntimeState:
@@ -452,38 +784,52 @@ def provider_info() -> dict:
         }
 
 
-@app.get("/speakers_list")
-def speakers_list() -> list[str]:
+@app.get("/voice_libraries")
+def voice_libraries() -> list[dict]:
     with runtime.lock:
         runtime.sync_voices_if_changed_unlocked()
-        return list(runtime.voice_names)
+        libraries = []
+        for profile in sorted(runtime.language_profiles.values(), key=lambda item: item.id):
+            items = voice_library_items(profile)
+            ready_count = sum(1 for item in items if bool(item.get("runtime_ready")))
+            libraries.append(
+                {
+                    **profile.public_dict(),
+                    "voice_directory": str(VOICES_ROOT / profile.id),
+                    "voice_count": ready_count,
+                    "total_voice_folders": len(items),
+                    "active": profile.id == runtime.active_language.id,
+                }
+            )
+        return libraries
+
+
+@app.get("/speakers_list")
+def speakers_list(language: str | None = Query(default=None)) -> list[str]:
+    with runtime.lock:
+        profile = resolve_optional_language(language)
+        if profile.id == runtime.active_language.id:
+            runtime.sync_voices_if_changed_unlocked()
+            return list(runtime.voice_names)
+
+    voices, _ = discover_voices(VOICES_ROOT / profile.id)
+    return list(voices.keys())
 
 
 @app.get("/speakers_list_extended")
-def speakers_list_extended() -> list[dict]:
+def speakers_list_extended(language: str | None = Query(default=None)) -> list[dict]:
     with runtime.lock:
-        runtime.sync_voices_if_changed_unlocked()
-        return [
-            {
-                "voice_id": profile.name,
-                "display_name": profile.metadata.get("display_name", profile.name),
-                "language": runtime.active_language.id,
-                "language_profile_id": profile.metadata.get(
-                    "language_profile_id", runtime.active_language.id
-                ),
-                "custom_voice": bool(profile.metadata.get("custom_voice", False)),
-                "calibration_status": (
-                    profile.metadata.get("calibration", {}).get("status")
-                    if isinstance(profile.metadata.get("calibration"), dict)
-                    else None
-                ),
-                "reference_wav": str(profile.reference_wav),
-                "reference_text": str(profile.reference_txt),
-                "metadata": dict(profile.metadata),
-                "cached_prompt": profile.prompt is not None,
-            }
-            for profile in runtime.voices.values()
-        ]
+        profile = resolve_optional_language(language)
+        if profile.id == runtime.active_language.id:
+            runtime.sync_voices_if_changed_unlocked()
+            cached = {item.name for item in runtime.voices.values() if item.prompt is not None}
+        else:
+            cached = set()
+
+    items = voice_library_items(profile)
+    for item in items:
+        item["cached_prompt"] = str(item.get("voice_id", "")) in cached
+    return items
 
 
 @app.get("/languages")
@@ -522,6 +868,61 @@ def set_active_language(request: LanguageSwitchRequest) -> dict:
         "active": profile.public_dict(),
         "voice_count": len(runtime.voice_names),
         "voices": runtime.voice_names,
+    }
+
+
+@app.post("/upload_sample")
+async def upload_sample(
+    wavFile: UploadFile = File(...),
+    language: str | None = Form(default=None),
+    speaker_name: str | None = Form(default=None),
+    speaker_id: str | None = Form(default=None),
+    reference_text: str | None = Form(default=None),
+    display_name: str | None = Form(default=None),
+    force: bool = Form(default=False),
+) -> dict:
+    source_bytes = await wavFile.read()
+    if not source_bytes:
+        raise HTTPException(status_code=400, detail={"error": "empty_upload"})
+
+    with runtime.lock:
+        profile = resolve_optional_language(language)
+
+    voice_id = normalized_voice_id_from_upload(
+        wavFile.filename or "uploaded.wav",
+        speaker_name or speaker_id,
+    )
+
+    text = " ".join(str(reference_text or "").split())
+    text_source = "manual" if text else "missing"
+    transcription_error: str | None = None
+    if not text:
+        text, text_source, transcription_error = auto_transcribe_reference(
+            source_bytes,
+            wavFile.filename or (voice_id + ".wav"),
+            profile,
+        )
+
+    result = write_imported_voice(
+        profile=profile,
+        voice_id=voice_id,
+        source_filename=wavFile.filename or (voice_id + ".wav"),
+        source_bytes=source_bytes,
+        reference_text=text,
+        reference_text_source=text_source,
+        transcription_error=transcription_error,
+        display_name=str(display_name or "").strip() or voice_id,
+        force=force,
+    )
+
+    if profile.id == runtime.active_language.id:
+        with generation_lock:
+            runtime.reload_voices()
+
+    return {
+        **result,
+        "status": "ok" if result["status"] == "runtime_ready" else result["status"],
+        "import_status": result["status"],
     }
 
 
