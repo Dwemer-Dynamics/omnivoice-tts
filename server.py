@@ -31,7 +31,7 @@ VOICES_ROOT = BASE_DIR / "voices"
 PROFILES_DIR = BASE_DIR / "languages"
 CONFIG_PATH = BASE_DIR / "config.json"
 SAMPLE_RATE_FALLBACK = 24000
-API_VERSION = "0.3.1"
+API_VERSION = "0.3.2"
 
 
 logging.basicConfig(
@@ -126,6 +126,42 @@ def discover_voices(language_dir: Path) -> tuple[dict[str, VoiceProfile], dict[s
     return profiles, aliases
 
 
+def voice_library_signature(language_dir: Path) -> tuple | None:
+    if not language_dir.is_dir():
+        return None
+
+    entries: list[tuple] = []
+    try:
+        directories = sorted(
+            (path for path in language_dir.iterdir() if path.is_dir()),
+            key=lambda path: path.name.casefold(),
+        )
+    except OSError:
+        return None
+
+    for directory in directories:
+        files: list[tuple[str, int, int]] = []
+        for filename in ("reference.wav", "reference.txt", "voice.json", "metadata.json"):
+            path = directory / filename
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            files.append((filename, stat.st_mtime_ns, stat.st_size))
+        try:
+            directory_mtime = directory.stat().st_mtime_ns
+        except OSError:
+            directory_mtime = 0
+        entries.append((directory.name, directory_mtime, tuple(files)))
+
+    try:
+        root_stat = language_dir.stat()
+        root_mtime = root_stat.st_mtime_ns
+    except OSError:
+        root_mtime = 0
+    return (str(language_dir), root_mtime, tuple(entries))
+
+
 class RuntimeState:
     def __init__(self) -> None:
         self.lock = RLock()
@@ -140,6 +176,7 @@ class RuntimeState:
         self.voice_aliases: dict[str, str] = {}
         self.voice_names: list[str] = []
         self.default_voice: str | None = None
+        self.voice_library_signature: tuple | None = None
         self.reload_voices_unlocked()
 
     @property
@@ -154,6 +191,7 @@ class RuntimeState:
         self.voices = voices
         self.voice_aliases = aliases
         self.voice_names = names
+        self.voice_library_signature = voice_library_signature(self.active_voice_dir)
         self.default_voice = self.first_available_voice(
             preferred,
             str(self.config.get("fallback_female", "")).strip(),
@@ -172,6 +210,25 @@ class RuntimeState:
     def reload_voices(self) -> None:
         with self.lock:
             self.reload_voices_unlocked()
+
+    def sync_voices_if_changed_unlocked(self) -> bool:
+        current = voice_library_signature(self.active_voice_dir)
+        if current == self.voice_library_signature:
+            return False
+
+        previous_count = len(self.voice_names)
+        self.reload_voices_unlocked()
+        log.info(
+            "Voice library change detected for %s; reloaded %d -> %d voice(s).",
+            self.active_language.id,
+            previous_count,
+            len(self.voice_names),
+        )
+        return True
+
+    def sync_voices_if_changed(self) -> bool:
+        with self.lock:
+            return self.sync_voices_if_changed_unlocked()
 
     def first_available_voice(self, *candidates: str) -> str | None:
         for candidate in candidates:
@@ -215,6 +272,7 @@ class RuntimeState:
 
     def resolve_voice(self, requested: str | None) -> VoiceProfile:
         with self.lock:
+            self.sync_voices_if_changed_unlocked()
             if not self.voices or self.default_voice is None:
                 raise HTTPException(
                     status_code=503,
@@ -330,6 +388,7 @@ class TTSSettingsRequest(BaseModel):
 @app.get("/")
 def root() -> dict:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         return {
             "service": "Multilingual TTS API",
             "version": API_VERSION,
@@ -345,6 +404,7 @@ def root() -> dict:
 @app.get("/health")
 def health() -> dict:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         cached = [
             profile.name for profile in runtime.voices.values() if profile.prompt is not None
         ]
@@ -367,6 +427,7 @@ def health() -> dict:
 @app.get("/provider_info")
 def provider_info() -> dict:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         return {
             "provider": "omnivoice",
             "api_version": API_VERSION,
@@ -394,12 +455,14 @@ def provider_info() -> dict:
 @app.get("/speakers_list")
 def speakers_list() -> list[str]:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         return list(runtime.voice_names)
 
 
 @app.get("/speakers_list_extended")
 def speakers_list_extended() -> list[dict]:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         return [
             {
                 "voice_id": profile.name,
@@ -435,6 +498,7 @@ def languages() -> list[str]:
 @app.get("/active_language")
 def active_language() -> dict:
     with runtime.lock:
+        runtime.sync_voices_if_changed_unlocked()
         return {
             "active": runtime.active_language.public_dict(),
             "voice_count": len(runtime.voice_names),

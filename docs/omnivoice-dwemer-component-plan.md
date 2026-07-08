@@ -26,6 +26,7 @@ Implemented locally:
 - Launcher voice-engine detection and apply routing for OmniVoice across CHIM/Skyrim, Stobe/Kenshi, and Dialectic/Fallout.
 - Native Stobe `connector_type=omnivoice` routing through Stobe's local TTS provider core.
 - OmniVoice server compatibility endpoints for `/speakers_list_extended` and `/set_tts_settings`.
+- OmniVoice server auto-syncs the active voice library on API requests when voice folders are added, updated, or removed.
 - Language catalog commands expose 96 recommended OmniVoice+Whisper presets and can enable selected presets as editable JSON profiles.
 - `conf.sh` exposes the 96-preset listing and preset-enable flow for launcher Configure users.
 - The verifier now checks the runtime contract endpoints: `/speakers_list`, `/speakers_list_extended`, `/languages`, `/active_language`, `POST /active_language`, `POST /reload_voices`, `POST /set_tts_settings`, and trailing-slash `POST /tts_to_audio/`.
@@ -59,6 +60,7 @@ Verified locally:
 - `start-gpu.sh` now treats an already healthy OmniVoice listener on `127.0.0.1:8021` as success, while still rejecting unrelated port conflicts.
 - `/health`, `/speakers_list`, `/speakers_list_extended`, `/active_language`, `/provider_info`, missing-speaker fallback, and `/tts_to_audio` were verified on `127.0.0.1:8021`.
 - `/tts_to_audio` returned `audio/wav` for a Slovak test sentence and wrote `/tmp/omnivoice-test.wav`.
+- Active-library auto-sync was verified by adding, using, and removing a temporary Spanish VoiceID after server startup without manually calling `/reload_voices`.
 - The running service is bound to `127.0.0.1:8021`, not `0.0.0.0`.
 - `/speakers_list_extended` exposes per-voice `voice.json` metadata, language profile, calibration status, and custom voice flag.
 - `/provider_info` exposes `honor_request_language=false`, configured male/female fallbacks, and the active 144-voice library.

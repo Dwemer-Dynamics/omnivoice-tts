@@ -208,6 +208,11 @@ with generic `default_male` voice routing.
 The verifier also confirms that path-shaped `speaker_wav` values are treated as
 VoiceIDs by basename and that unknown language switches return JSON errors.
 
+The running server checks the active voice library for changes on status,
+speaker-list, and synthesis API requests. After importing or building voices,
+new VoiceIDs become available automatically without manually calling
+`/reload_voices`.
+
 Use `verify-lifecycle` before packaging changes to the installer, uninstall, or
 export flow. It creates temporary component copies and verifies that installer
 reruns are idempotent, uninstall preserves voice libraries unless
