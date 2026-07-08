@@ -55,7 +55,6 @@ Open the configuration menu:
 
 The menu can:
 
-- Enable or disable the service.
 - Open the same workflows that are available in the browser control panel.
 - Show doctor/status.
 - Run the verification smoke test.
@@ -69,16 +68,16 @@ The menu can:
 - Export prepared voices to another local TTS engine.
 - Uninstall the runtime while preserving voices by default.
 
-## Enable Or Disable Startup
+## Startup
 
-Enabling creates:
+When installed as a DwemerDistro component, OmniVoice starts with the distro.
+The installer creates:
 
 ```text
 /home/dwemer/omnivoice-tts/start.sh
 ```
 
-Disabling removes that symlink. DwemerDistro startup only starts OmniVoice when
-`start.sh` exists.
+Disable or remove it through the DwemerDistro component installer/manager.
 
 ## Build One CHIM Voice
 

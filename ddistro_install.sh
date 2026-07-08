@@ -44,6 +44,8 @@ cd "$REPO_DIR"
 mkdir -p voices reports logs diagnostics model_cache model_cache/huggingface model_cache/huggingface/hub
 chmod +x ddistro_install.sh conf.sh start-gpu.sh omnivoice_cli.py
 chmod -R a+rwX voices reports logs diagnostics model_cache languages config.json 2>/dev/null || true
+ln -sfn "$REPO_DIR/start-gpu.sh" "$REPO_DIR/start.sh"
+chmod +x "$REPO_DIR/start.sh"
 
 if [ "${OMNIVOICE_SKIP_WEB_UI:-0}" = "1" ]; then
     echo "Skipping web UI publishing because OMNIVOICE_SKIP_WEB_UI=1."
@@ -90,10 +92,10 @@ cat << EOF
 
 Install complete.
 
-Run this to enable, disable, select language, or build voices:
+Run this to select language, build voices, or run diagnostics:
   $REPO_DIR/conf.sh
 
-The service is not enabled unless $REPO_DIR/start.sh exists.
+The service starts with DwemerDistro while this component is installed.
 
 If the Apache web root was available, open the web control panel at:
   http://127.0.0.1/OmniVoice/

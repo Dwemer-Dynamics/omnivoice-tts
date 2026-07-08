@@ -42,7 +42,7 @@ Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 - Exact VoiceID synthesis, missing male/female fallback synthesis, and temporary custom voice add/synthesize/cleanup were verified.
 - The language catalog flow was verified through `verify-lifecycle`, including `languages presets` reporting 96 recommended presets.
 - `conf.sh` scripted smoke tests verified option 6 lists the 96-preset catalog and option 7 refuses a placeholder preset by default without creating `haw.json`.
-- `conf.sh` enable/disable and `start-gpu.sh` already-running behavior were verified.
+- `conf.sh` startup controls were removed; installed OmniVoice components start with DwemerDistro.
 - Launcher apply updated CHIM, Stobe, and Dialectic connector rows in the live WSL databases.
 
 Still not verified:

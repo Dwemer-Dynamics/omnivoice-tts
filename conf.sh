@@ -55,20 +55,18 @@ Service port: 127.0.0.1:8021
 Install path: $REPO_DIR
 Web panel: http://127.0.0.1/OmniVoice/
 
-1. Enable service (GPU / CUDA)
-2. Disable service
-3. Show doctor/status
-4. Run verification smoke test
-5. List languages
-6. List 96 recommended language presets
-7. Enable a language preset
-8. Set active language
-9. List/audit prepared voices
-10. Import one CHIM VoiceID
-11. Calibrate one VoiceID
-12. Build full selected-language CHIM library
-13. Export voices to another TTS engine
-14. Uninstall runtime (preserve voices)
+1. Show doctor/status
+2. Run verification smoke test
+3. List languages
+4. List 96 recommended language presets
+5. Enable a language preset
+6. Set active language
+7. List/audit prepared voices
+8. Import one CHIM VoiceID
+9. Calibrate one VoiceID
+10. Build full selected-language CHIM library
+11. Export voices to another TTS engine
+12. Uninstall runtime (preserve voices)
 0. Exit
 
 EOF
@@ -81,29 +79,8 @@ EOF
 
     case "$selection" in
         1)
-            if port_in_use && ! omnivoice_healthy; then
-                echo "ERROR: port $PORT is already in use on 127.0.0.1."
-                echo "Stop the conflicting service before enabling OmniVoice."
-                read -r -p "Press ENTER to continue." _
-                continue
-            fi
-            ln -sf "$REPO_DIR/start-gpu.sh" "$REPO_DIR/start.sh"
-            chmod +x "$REPO_DIR/start-gpu.sh" "$REPO_DIR/start.sh"
-            echo "[OK] OmniVoice enabled. It will start with DwemerDistro."
-            read -r -p "Press ENTER to continue." _
-            ;;
-        2)
-            rm -f "$REPO_DIR/start.sh"
-            echo "[OK] OmniVoice disabled."
-            read -r -p "Press ENTER to continue." _
-            ;;
-        3)
             python omnivoice_cli.py doctor
-            if [ -L "$REPO_DIR/start.sh" ] || [ -f "$REPO_DIR/start.sh" ]; then
-                echo "Service enabled: yes"
-            else
-                echo "Service enabled: no"
-            fi
+            echo "Service startup: automatic while installed"
             if port_in_use; then
                 if omnivoice_healthy; then
                     echo "Port $PORT: in use by healthy OmniVoice"
@@ -115,7 +92,7 @@ EOF
             fi
             read -r -p "Press ENTER to continue." _
             ;;
-        4)
+        2)
             read -r -p "Language id/alias, or leave blank for active language: " lang
             lang="${lang//$'\r'/}"
             lang="${lang//$'\xef\xbb\xbf'/}"
@@ -126,15 +103,15 @@ EOF
             fi
             read -r -p "Press ENTER to continue." _
             ;;
-        5)
+        3)
             python omnivoice_cli.py languages
             read -r -p "Press ENTER to continue." _
             ;;
-        6)
+        4)
             python omnivoice_cli.py languages presets
             read -r -p "Press ENTER to continue." _
             ;;
-        7)
+        5)
             read -r -p "Preset id/name/alias to enable: " preset
             preset="${preset//$'\r'/}"
             preset="${preset//$'\xef\xbb\xbf'/}"
@@ -164,30 +141,30 @@ EOF
             fi
             read -r -p "Press ENTER to continue." _
             ;;
-        8)
+        6)
             read -r -p "Language id/alias (for example sk, cs, es, en): " lang
             python omnivoice_cli.py set-language "$lang" --live-if-running
             read -r -p "Press ENTER to continue." _
             ;;
-        9)
+        7)
             read -r -p "Language id/alias or all [all]: " lang
             lang="${lang:-all}"
             python omnivoice_cli.py voices --language "$lang" --write-report
             read -r -p "Press ENTER to continue." _
             ;;
-        10)
+        8)
             read -r -p "Language id/alias: " lang
             read -r -p "CHIM VoiceID to import: " voice
             python omnivoice_cli.py import-chim --language "$lang" --voice "$voice"
             read -r -p "Press ENTER to continue." _
             ;;
-        11)
+        9)
             read -r -p "Language id/alias: " lang
             read -r -p "VoiceID to calibrate: " voice
             python omnivoice_cli.py calibrate --language "$lang" --voice "$voice"
             read -r -p "Press ENTER to continue." _
             ;;
-        12)
+        10)
             read -r -p "Language id/alias: " lang
             echo "This can take a long time and uses CUDA heavily."
             read -r -p "Type YES to build/calibrate the full library: " confirm
@@ -199,7 +176,7 @@ EOF
             fi
             read -r -p "Press ENTER to continue." _
             ;;
-        13)
+        11)
             read -r -p "Language id/alias: " lang
             read -r -p "Target [zip/chatterbox/pockettts/xtts]: " target
             target="${target:-zip}"
@@ -217,8 +194,8 @@ EOF
             fi
             read -r -p "Press ENTER to continue." _
             ;;
-        14)
-            echo "This removes the venv and disables startup, but keeps voices/reports by default."
+        12)
+            echo "This removes the venv and startup launcher, but keeps voices/reports by default."
             read -r -p "Type YES to uninstall runtime: " confirm
             if [ "$confirm" = "YES" ]; then
                 python omnivoice_cli.py uninstall --yes
