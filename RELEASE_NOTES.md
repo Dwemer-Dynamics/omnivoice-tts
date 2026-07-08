@@ -24,7 +24,7 @@ Known blockers before public release:
 
 - The submitted source package needs explicit publication/license permission from the original author.
 - Upstream OmniVoice/model/dependency license compatibility must be reviewed. The Python package/code currently report Apache-2.0, but the upstream pretrained model is currently documented as CC-BY-NC and tokenizer terms need review.
-- `Dwemer-Dynamics/omnivoice-tts` must be created and populated.
+- `Dwemer-Dynamics/omnivoice-tts` exists as a private staging repo, but must remain private until publication permission and license review are complete.
 
 Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 
@@ -43,5 +43,5 @@ Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 
 Still not verified:
 
-- Fresh install from the launcher/GitHub, because the public repo does not exist yet.
+- Fresh public-user install from the launcher/GitHub, because the repo is intentionally private until public-release gates are resolved.
 - In-game CHIM, Stobe, and Dialectic playback.

@@ -42,7 +42,7 @@ Verified locally:
 - WSL reports CUDA visibility through `nvidia-smi`.
 - Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `127.0.0.1:8021`.
 - `/var/www/html/HerikaServer/data/voices` and `/var/www/html/StobeServer` exist in the live distro.
-- `Dwemer-Dynamics/omnivoice-tts` does not currently exist on GitHub.
+- Private GitHub staging repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated. Default branch `main` currently points at `2f2ea2f`; keep it private until publication permission and model/tokenizer license review are complete.
 - Upstream `k2-fsa/OmniVoice` exists on Hugging Face, and the pinned Python packages are currently discoverable by `pip index`.
 - Local WSL install from the unpublished checkout succeeded at `/home/dwemer/omnivoice-tts`.
 - OmniVoice venv dependency install completed and `python -m pip check` reported no broken requirements.
@@ -80,15 +80,15 @@ Verified locally:
 
 Not verified yet:
 
-- Fresh install from GitHub, because the public component repo does not exist yet.
-- Fresh install directly from the launcher button, because the public component repo does not exist yet.
+- Fresh public-user install from GitHub, because the component repo is private until publication and license gates are resolved.
+- Fresh public-user install directly from the launcher button, because the launcher command clones the GitHub repo and the repo must remain private until release gates are resolved.
 - In-game CHIM, Stobe, and Dialectic speech playback, although the shared local API and database connector rows are verified.
 - Public package release from GitHub/Nexus.
 
 Release blockers:
 
 - The submitted archive did not include an explicit license or publication permission. Do not publish a public repo or Nexus package until this is resolved with the original author.
-- `Dwemer-Dynamics/omnivoice-tts` must be created and populated before launcher install can work for users.
+- `Dwemer-Dynamics/omnivoice-tts` now exists as a private staging repo, but it must not be made public or used for public launcher installs until release gates are resolved.
 - Upstream OmniVoice/model/dependency licenses must be reviewed before public release.
 - Release-readiness details are recorded in `docs/omnivoice-release-readiness.md`.
 
@@ -581,6 +581,6 @@ Verification refresh on July 8, 2026:
 
 Still blocked or not proven:
 
-- Fresh launcher install from GitHub is blocked because `Dwemer-Dynamics/omnivoice-tts` does not exist yet.
+- Fresh public-user launcher install from GitHub is blocked because `Dwemer-Dynamics/omnivoice-tts` is intentionally private until publication permission and license review are resolved.
 - Public release is blocked until original-author publication permission/license and upstream model/dependency license compatibility are confirmed.
 - In-game CHIM, Stobe, and Dialectic playback is not proven in the games; the local API, connector rows, and PHP code paths are verified.

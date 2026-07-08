@@ -9,8 +9,9 @@ Local DwemerDistro integration can continue, but public release is blocked until
 the original submitted-tool author grants explicit publication permission and the
 upstream OmniVoice model/tokenizer licensing is reviewed.
 
-Do not publish `Dwemer-Dynamics/omnivoice-tts`, a Nexus package, or a launcher
-release that installs OmniVoice for users until the blockers below are resolved.
+Do not make the private `Dwemer-Dynamics/omnivoice-tts` staging repo public,
+publish a Nexus package, or ship a launcher release that installs OmniVoice for
+users until the blockers below are resolved.
 
 ## Local Submitted Tool
 
@@ -90,7 +91,16 @@ tool permission and upstream pretrained-model/tokenizer terms are.
 
 ## Repo Readiness Checklist
 
-Before creating or populating `Dwemer-Dynamics/omnivoice-tts`:
+Private staging status:
+
+- `Dwemer-Dynamics/omnivoice-tts` exists as a private GitHub repo.
+- The private staging repo is populated on `main` at `2f2ea2f`.
+- The repo contains component source, docs, release-readiness notes, and empty
+  runtime directories via `.gitkeep`.
+- The repo does not contain generated voices, CHIM source WAVs, model weights,
+  model cache, diagnostics, reports, or logs.
+
+Before making `Dwemer-Dynamics/omnivoice-tts` public:
 
 - Add a repo `LICENSE` chosen by Dwemer Dynamics and compatible with copied
   source ownership.
@@ -112,7 +122,7 @@ Before creating or populating `Dwemer-Dynamics/omnivoice-tts`:
 The launcher can keep the optional install/config/status UI locally, but a public
 launcher release should not expose a working install button until:
 
-- `Dwemer-Dynamics/omnivoice-tts` exists and is populated.
+- `Dwemer-Dynamics/omnivoice-tts` has been approved for public visibility.
 - The repo has license and third-party notice files.
 - Author publication permission is recorded.
 - Model/tokenizer terms are reviewed and reflected in user-facing docs.
