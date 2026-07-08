@@ -39,6 +39,9 @@ Required before public release:
 - Confirm whether any source files were copied from the submitted package and
   whether those files need a third-party notice in the new repo.
 
+Tracked in the private staging repo as
+`Dwemer-Dynamics/omnivoice-tts#1`.
+
 ## Upstream OmniVoice
 
 Relevant upstream sources checked on July 8, 2026:
@@ -68,6 +71,9 @@ Release implication:
   and tokenizer terms are confirmed compatible with that claim.
 - Public docs should say "local optional component" and avoid stronger claims
   about redistribution or commercial use.
+
+Tracked in the private staging repo as
+`Dwemer-Dynamics/omnivoice-tts#2`.
 
 ## Runtime Package Snapshot
 
@@ -126,3 +132,6 @@ launcher release should not expose a working install button until:
 - The repo has license and third-party notice files.
 - Author publication permission is recorded.
 - Model/tokenizer terms are reviewed and reflected in user-facing docs.
+
+Tracked in the private staging repo as
+`Dwemer-Dynamics/omnivoice-tts#3`.
