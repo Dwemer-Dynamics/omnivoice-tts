@@ -353,6 +353,17 @@ def check_service_contract(base_url: str, language: str, voice: str) -> VerifyCh
         if not ok:
             failures.append(f"{name}: {detail}")
 
+    switched, error, status = post_json(f"{base}/active_language", {"language": language})
+    switched_id = ""
+    if isinstance(switched, dict) and isinstance(switched.get("active"), dict):
+        switched_id = str(switched["active"].get("id") or "")
+    record(
+        "POST /active_language",
+        status == 200 and switched_id == language,
+        error or f"expected HTTP 200 and active language {language!r}, got status={status} active={switched_id!r}",
+        switched,
+    )
+
     speakers, error = read_json(f"{base}/speakers_list")
     record(
         "GET /speakers_list",
@@ -404,17 +415,6 @@ def check_service_contract(base_url: str, language: str, voice: str) -> VerifyCh
         active_id == language,
         error or f"expected active language {language!r}, got {active_id!r}",
         active,
-    )
-
-    switched, error, status = post_json(f"{base}/active_language", {"language": language})
-    switched_id = ""
-    if isinstance(switched, dict) and isinstance(switched.get("active"), dict):
-        switched_id = str(switched["active"].get("id") or "")
-    record(
-        "POST /active_language",
-        status == 200 and switched_id == language,
-        error or f"expected HTTP 200 and active language {language!r}, got status={status} active={switched_id!r}",
-        switched,
     )
 
     missing_language_id = "zz_omnivoice_verify_missing"
@@ -470,7 +470,7 @@ def check_service_contract(base_url: str, language: str, voice: str) -> VerifyCh
 
     if failures:
         return VerifyCheck("service_contract", "fail", f"{len(failures)} contract check(s) failed", {"results": results})
-    return VerifyCheck("service_contract", "pass", "XTTS-compatible service contract endpoints responded correctly", {"results": results})
+    return VerifyCheck("service_contract", "pass", "legacy XTTS-compatible endpoint contract responded correctly", {"results": results})
 
 
 def run_php_smoke(script: str, args: list[str]) -> tuple[dict[str, Any] | None, str, int]:
@@ -796,6 +796,7 @@ def main() -> int:
 
     checks: list[VerifyCheck] = []
     checks.append(check_doctor())
+    post_json(args.base_url.rstrip("/") + "/active_language", {"language": language})
     service_check, _health, provider = check_service(args.base_url)
     checks.append(service_check)
     checks.append(check_bind_address(args.port))

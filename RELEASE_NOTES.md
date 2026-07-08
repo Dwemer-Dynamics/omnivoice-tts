@@ -14,7 +14,7 @@ Included:
 - CLI for doctor, language selection, CHIM import, custom voices, calibration, library audit, export, uninstall, and server startup.
 - Language catalog commands for listing 96 recommended OmniVoice+Whisper presets and enabling selected presets as editable JSON profiles.
 - `conf.sh` exposes the 96-preset listing and preset-enable flow for launcher Configure users.
-- End-to-end `verify` command for doctor, service health, loopback binding, voice library audit, XTTS-compatible service contract checks, synthesis smoke checks, and optional DwemerDistro service listener/database/site connector checks.
+- End-to-end `verify` command for doctor, service health, loopback binding, voice library audit, legacy XTTS-compatible endpoint checks, synthesis smoke checks, and optional DwemerDistro service listener/database/site connector checks.
 - `verify-lifecycle` command for temporary-directory installer, uninstall, export safety, and engine compatibility-warning checks.
 - `verify-lifecycle` also checks the language catalog flow: 96-preset listing, native preset enablement, placeholder-preset refusal by default, explicit placeholder enablement for editing, and calibration refusal while placeholder text remains.
 - DwemerDistro launcher install card and connector apply support.
