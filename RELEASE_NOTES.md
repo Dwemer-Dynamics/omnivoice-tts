@@ -44,5 +44,11 @@ Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 
 Still not verified:
 
-- Fresh public-user install from the launcher/GitHub.
+- Full clean launcher install with dependency download and post-install doctor.
 - In-game CHIM, Stobe, and Dialectic playback.
+
+Public repo verification completed:
+
+- `Dwemer-Dynamics/omnivoice-tts` is public.
+- Anonymous GitHub clone resolves `main`.
+- Fresh public clone install dry-run passed with dependency and doctor skips, including idempotent rerun and executable script modes.

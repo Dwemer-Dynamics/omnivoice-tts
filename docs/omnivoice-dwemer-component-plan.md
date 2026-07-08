@@ -43,9 +43,11 @@ Verified locally:
 - Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `127.0.0.1:8021`.
 - `/var/www/html/HerikaServer/data/voices` and `/var/www/html/StobeServer` exist in the live distro.
 - GitHub repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated.
+- GitHub repo `Dwemer-Dynamics/omnivoice-tts` is public.
 - ErikErix granted Dwemer Dynamics permission to publish and adapt the submitted tool as this component.
 - Component source is MIT licensed; downloaded pretrained OmniVoice model/tokenizer use must be treated as non-commercial.
 - Upstream `k2-fsa/OmniVoice` exists on Hugging Face, and the pinned Python packages are currently discoverable by `pip index`.
+- Fresh anonymous GitHub clone/install dry-run passed with dependency and doctor skips, including idempotent rerun and executable script modes.
 - Local WSL install from the unpublished checkout succeeded at `/home/dwemer/omnivoice-tts`.
 - OmniVoice venv dependency install completed and `python -m pip check` reported no broken requirements.
 - `doctor` reports `ready` with CUDA, model cache, writable folders, CHIM source, active Slovak language, one prepared voice, and a healthy `/health` service.
@@ -82,14 +84,14 @@ Verified locally:
 
 Not verified yet:
 
-- Fresh public-user install from GitHub after repo visibility/license updates.
-- Fresh public-user install directly from the launcher button after repo visibility/license updates.
+- Full clean public-user install from GitHub with dependency download and post-install doctor.
+- Fresh public-user install directly from the launcher button with dependency download and post-install doctor.
 - In-game CHIM, Stobe, and Dialectic speech playback, although the shared local API and database connector rows are verified.
 - Public package release from GitHub/Nexus.
 
 Release blockers:
 
-- Fresh public launcher/GitHub install must be verified after repo visibility/license updates.
+- Full clean public launcher/GitHub install must be verified with dependency download and post-install doctor.
 - Public docs and launcher/Nexus copy must keep the non-commercial downloaded model/tokenizer constraint visible.
 - Release-readiness details are recorded in `docs/omnivoice-release-readiness.md`.
 
@@ -582,6 +584,6 @@ Verification refresh on July 8, 2026:
 
 Still blocked or not proven:
 
-- Fresh public-user launcher install from GitHub is not yet proven after repo visibility/license updates.
+- Full clean public-user launcher install from GitHub is not yet proven with dependency download and post-install doctor.
 - Public release copy must retain the non-commercial downloaded model/tokenizer constraint.
 - In-game CHIM, Stobe, and Dialectic playback is not proven in the games; the local API, connector rows, and PHP code paths are verified.

@@ -9,8 +9,9 @@ Local DwemerDistro integration can continue, and the component source can be
 published under MIT with ErikErix attribution. Public release must clearly state
 that downloaded pretrained OmniVoice model/tokenizer use is non-commercial.
 
-Before a public launcher/Nexus release, verify a fresh GitHub install and keep
-the non-commercial model/tokenizer terms visible in user-facing docs.
+Before a public launcher/Nexus release, verify a full clean launcher/GitHub
+install with dependency download and post-install doctor, and keep the
+non-commercial model/tokenizer terms visible in user-facing docs.
 
 ## Local Submitted Tool
 
@@ -91,23 +92,26 @@ tool permission and upstream pretrained-model/tokenizer terms are.
 
 ## Repo Readiness Checklist
 
-Private staging status:
+Public repository status:
 
-- `Dwemer-Dynamics/omnivoice-tts` exists as a private GitHub repo.
-- The private staging repo is populated on `main`.
+- `Dwemer-Dynamics/omnivoice-tts` exists as a public GitHub repo.
+- The public repo is populated on `main`.
 - The repo contains component source, docs, release-readiness notes, and empty
   runtime directories via `.gitkeep`.
 - The repo does not contain generated voices, CHIM source WAVs, model weights,
   model cache, diagnostics, reports, or logs.
+- Anonymous GitHub clone resolves `main`.
+- Fresh public clone install dry-run passed with dependency and doctor skips,
+  including idempotent rerun and executable script modes.
 
-Before making or keeping `Dwemer-Dynamics/omnivoice-tts` public:
+Required public repo contents:
 
-- Include the MIT `LICENSE`.
-- Add `THIRD_PARTY_NOTICES.md` covering OmniVoice, tokenizer/model terms, and
+- MIT `LICENSE`.
+- `THIRD_PARTY_NOTICES.md` covering OmniVoice, tokenizer/model terms, and
   material runtime dependencies.
-- Add `README.md` language that clearly distinguishes code license from model
+- `README.md` language that clearly distinguishes code license from model
   license.
-- Add `RELEASE_NOTES.md`.
+- `RELEASE_NOTES.md`.
 - Keep generated voices, CHIM source WAVs, model weights, model cache,
   diagnostics, reports, and logs out of git.
 - Confirm `ddistro_install.sh` downloads dependencies at install time and does
@@ -123,7 +127,8 @@ launcher release should not expose a working install button until:
 - The repo has license and third-party notice files.
 - Author publication permission is recorded.
 - Non-commercial model/tokenizer terms are reflected in user-facing docs.
-- Fresh launcher/GitHub install has been verified.
+- Full clean launcher/GitHub install with dependency download and post-install
+  doctor has been verified.
 
 Tracked in the staging repo as
 `Dwemer-Dynamics/omnivoice-tts#3`.
