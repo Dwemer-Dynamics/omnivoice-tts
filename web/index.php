@@ -128,13 +128,6 @@ $assetVersion = static function (string $path): string {
             <div id="jobList" class="job-list"></div>
             <pre id="jobLog" class="job-log"></pre>
         </details>
-
-        <section class="panel compact-note">
-            <div class="section-head">
-                <h2>Connector</h2>
-            </div>
-            <p>Use OmniVoice from CHIM, Dialectic, or Stobe by enabling the connector toggle. The connector URL stays unchanged; runtime requests route to 127.0.0.1:8021.</p>
-        </section>
     </main>
 
     <footer>
