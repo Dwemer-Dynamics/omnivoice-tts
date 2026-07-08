@@ -193,6 +193,19 @@ button:focus-visible {
     outline-offset: 2px;
 }
 
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+    transform: none;
+}
+
+button:disabled:hover {
+    border-color: var(--line-soft);
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
 button.danger {
     background-color: var(--red);
     border-color: #b33a3a;
@@ -212,7 +225,6 @@ button.danger:hover {
 
 #enablePreset,
 #setActive,
-#importVoice,
 #calibrateVoice,
 #buildVoice,
 #generateTest {
@@ -224,7 +236,6 @@ button.danger:hover {
 
 #enablePreset:hover,
 #setActive:hover,
-#importVoice:hover,
 #calibrateVoice:hover,
 #buildVoice:hover,
 #generateTest:hover {
@@ -300,6 +311,49 @@ textarea {
 
 .form-row.compact input {
     width: 190px;
+}
+
+.primary-panel {
+    align-self: start;
+}
+
+.advanced-block {
+    margin-top: 12px;
+    border-top: 1px solid #3a3a3a;
+    padding-top: 10px;
+}
+
+.advanced-block summary,
+.details-head {
+    color: var(--gold);
+    cursor: pointer;
+    font-weight: 700;
+    min-height: 34px;
+}
+
+.advanced-block summary:hover,
+.details-head:hover {
+    color: #f0cf75;
+}
+
+.advanced-row {
+    margin-top: 10px;
+}
+
+.details-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    list-style-position: inside;
+}
+
+.details-head button {
+    margin-left: auto;
+}
+
+.compact-note p {
+    line-height: 1.5;
 }
 
 .check {

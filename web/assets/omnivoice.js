@@ -32,13 +32,51 @@ async function jsonApi(path, body = null) {
 
 function setText(id, value, className = "") {
   const node = $(id);
+  if (!node) {
+    return;
+  }
   node.textContent = value;
   node.className = className;
 }
 
+function profiles() {
+  return state.languages?.profiles || [];
+}
+
+function presets() {
+  return state.languages?.presets || [];
+}
+
+function profileById(id) {
+  return profiles().find((item) => item.id === id) || null;
+}
+
 function currentLanguage() {
+  const select = $("profileSelect");
+  return select?.value || state.activeLanguage || profiles()[0]?.id || "sk";
+}
+
+function selectedPreset() {
   const select = $("presetSelect");
-  return select.value || state.activeLanguage || "sk";
+  if (!select || select.selectedOptions[0]?.disabled) {
+    return "";
+  }
+  return select.value || "";
+}
+
+function currentProfile() {
+  return profileById(currentLanguage());
+}
+
+function setLanguageActionState() {
+  const hasProfile = Boolean(currentProfile());
+  for (const id of ["setActive", "refreshVoices", "calibrateVoice", "buildVoice", "buildFull", "generateTest"]) {
+    const button = $(id);
+    if (button) {
+      button.disabled = !hasProfile;
+      button.title = hasProfile ? "" : "Install a language profile first.";
+    }
+  }
 }
 
 async function loadStatus() {
@@ -55,13 +93,41 @@ async function loadStatus() {
   setText("gpuName", health.gpu || "Unknown", health.cuda ? "ok" : "warn");
 }
 
-function renderPresetOptions() {
-  const select = $("presetSelect");
-  const search = $("languageSearch").value.trim().toLowerCase();
+function renderProfileOptions() {
+  const select = $("profileSelect");
+  if (!select) {
+    return;
+  }
   select.innerHTML = "";
 
-  const presets = state.languages?.presets || [];
-  for (const preset of presets) {
+  const configuredProfiles = profiles().slice().sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  for (const profile of configuredProfiles) {
+    const option = document.createElement("option");
+    option.value = profile.id;
+    option.textContent = `${profile.id} - ${profile.display_name || profile.id}`;
+    if (profile.id === state.activeLanguage) {
+      option.selected = true;
+    }
+    select.append(option);
+  }
+
+  if (!select.value && configuredProfiles.length > 0) {
+    select.value = configuredProfiles[0].id;
+  }
+  updateLanguageMeta();
+}
+
+function renderPresetOptions() {
+  const select = $("presetSelect");
+  const search = $("languageSearch")?.value.trim().toLowerCase() || "";
+  if (!select) {
+    return;
+  }
+  select.innerHTML = "";
+
+  const installed = new Set(profiles().map((profile) => profile.id));
+  let firstAvailable = "";
+  for (const preset of presets()) {
     const label = `${preset.id} - ${preset.display_name || preset.omnivoice_language || ""}`;
     const haystack = `${label} ${(preset.aliases || []).join(" ")}`.toLowerCase();
     if (search && !haystack.includes(search)) {
@@ -69,28 +135,48 @@ function renderPresetOptions() {
     }
     const option = document.createElement("option");
     option.value = preset.id;
-    option.textContent = label;
-    if (preset.id === state.activeLanguage) {
-      option.selected = true;
+    option.textContent = installed.has(preset.id) ? `${label} (installed)` : label;
+    option.disabled = installed.has(preset.id);
+    if (!option.disabled && !firstAvailable) {
+      firstAvailable = preset.id;
     }
     select.append(option);
   }
-  updateLanguageMeta();
+  if (firstAvailable) {
+    select.value = firstAvailable;
+  }
+  updatePresetMeta();
 }
 
 function updateLanguageMeta() {
-  const preset = (state.languages?.presets || []).find((item) => item.id === $("presetSelect").value);
+  const profile = currentProfile();
+  if (!profile) {
+    $("languageMeta").textContent = "No installed language profiles found. Add a language first.";
+    setText("libraryLanguage", "");
+    setLanguageActionState();
+    return;
+  }
+
+  const placeholder = profile.placeholder ? "placeholder text present" : "ready profile";
+  $("languageMeta").textContent = `${profile.display_name || profile.id}: OmniVoice ${profile.omnivoice_language || "unknown"}, Whisper ${profile.whisper_language || "unknown"}; ${placeholder}`;
+  setText("libraryLanguage", `${profile.display_name || profile.id} (${profile.id})`);
+  setLanguageActionState();
+}
+
+function updatePresetMeta() {
+  const preset = presets().find((item) => item.id === selectedPreset());
   if (!preset) {
-    $("languageMeta").textContent = "";
+    $("presetMeta").textContent = "";
     return;
   }
   const nativeSamples = preset.has_native_samples === false ? "placeholder samples" : "native calibration samples";
-  $("languageMeta").textContent = `${preset.display_name || preset.id}: ${preset.omnivoice_language || "OmniVoice"} / ${preset.whisper_language || "Whisper"}; ${nativeSamples}`;
+  $("presetMeta").textContent = `${preset.display_name || preset.id}: ${preset.omnivoice_language || "OmniVoice"} / ${preset.whisper_language || "Whisper"}; ${nativeSamples}`;
 }
 
 async function loadLanguages() {
   state.languages = await jsonApi("languages.php");
   state.activeLanguage = state.languages.active_language || state.activeLanguage;
+  renderProfileOptions();
   renderPresetOptions();
 }
 
@@ -99,9 +185,10 @@ async function languageAction(action, extra = {}) {
   const result = await jsonApi("languages.php", payload);
   if (!result.ok) {
     alert(result.result?.stderr || result.error || "Language action failed.");
-    return;
+    return false;
   }
   await Promise.all([loadLanguages(), loadStatus()]);
+  return true;
 }
 
 async function startJob(action, extra = {}) {
@@ -116,10 +203,17 @@ async function startJob(action, extra = {}) {
 
 async function loadVoices(refresh = false) {
   const lang = currentLanguage();
-  const data = await jsonApi(`voices.php?language=${encodeURIComponent(lang)}&refresh=${refresh ? "1" : "0"}`);
-  const report = data.report;
+  const profile = profileById(lang);
   const tbody = $("voiceRows");
   tbody.innerHTML = "";
+
+  if (!profile) {
+    $("voiceSummary").textContent = "Install a language profile before auditing voices.";
+    return;
+  }
+
+  const data = await jsonApi(`voices.php?language=${encodeURIComponent(lang)}&refresh=${refresh ? "1" : "0"}`);
+  const report = data.report;
   if (!report) {
     $("voiceSummary").textContent = "No audit report exists yet.";
     return;
@@ -163,12 +257,18 @@ async function loadJob(id) {
 }
 
 async function generateTest() {
+  const profile = currentProfile();
+  if (!profile) {
+    alert("Install a language profile before testing voice synthesis.");
+    return;
+  }
+
   const response = await api("test_voice.php", {
     method: "POST",
     body: JSON.stringify({
       text: $("testText").value,
       voice: $("testVoice").value,
-      language: currentLanguage(),
+      language: profile.id,
     }),
   });
   if (!(response instanceof Response) || !response.ok) {
@@ -197,16 +297,31 @@ function wireEvents() {
   $("startService").addEventListener("click", () => startJob("start_service"));
   $("loadLanguages").addEventListener("click", loadLanguages);
   $("languageSearch").addEventListener("input", renderPresetOptions);
-  $("presetSelect").addEventListener("change", updateLanguageMeta);
-  $("enablePreset").addEventListener("click", () => languageAction("enable_preset", {
-    preset: currentLanguage(),
-    allow_placeholder: $("allowPlaceholder").checked,
-  }));
+  $("presetSelect").addEventListener("change", updatePresetMeta);
+  $("profileSelect").addEventListener("change", async () => {
+    updateLanguageMeta();
+    await loadVoices(false);
+  });
+  $("enablePreset").addEventListener("click", async () => {
+    const preset = selectedPreset();
+    if (!preset) {
+      alert("Select a language preset first.");
+      return;
+    }
+    const ok = await languageAction("enable_preset", {
+      preset,
+      allow_placeholder: $("allowPlaceholder").checked,
+    });
+    if (ok) {
+      $("profileSelect").value = preset;
+      updateLanguageMeta();
+      await loadVoices(false);
+    }
+  });
   $("setActive").addEventListener("click", () => languageAction("set_active", { language: currentLanguage() }));
   $("enableStartup").addEventListener("click", () => startJob("enable_startup"));
   $("disableStartup").addEventListener("click", () => startJob("disable_startup"));
   $("refreshVoices").addEventListener("click", () => loadVoices(true));
-  $("importVoice").addEventListener("click", () => startJob("import_voice", { language: currentLanguage(), voice: $("voiceId").value }));
   $("calibrateVoice").addEventListener("click", () => startJob("calibrate_voice", { language: currentLanguage(), voice: $("voiceId").value }));
   $("buildVoice").addEventListener("click", () => startJob("build_voice", { language: currentLanguage(), voice: $("voiceId").value }));
   $("buildFull").addEventListener("click", () => {

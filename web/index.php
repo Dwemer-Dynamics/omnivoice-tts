@@ -53,35 +53,47 @@ $root = omnivoice_root();
             </div>
         </section>
 
-        <section class="panel">
+        <section class="panel primary-panel">
             <div class="section-head">
-                <h2>Language</h2>
+                <h2>Installed Language</h2>
                 <button id="loadLanguages" type="button">Reload</button>
             </div>
             <div class="form-row">
-                <input id="languageSearch" type="search" placeholder="Search presets">
-                <select id="presetSelect"></select>
-                <label class="check"><input id="allowPlaceholder" type="checkbox"> Allow placeholder</label>
-            </div>
-            <div class="button-row">
-                <button id="enablePreset" type="button">Enable Preset</button>
+                <select id="profileSelect"></select>
                 <button id="setActive" type="button">Set Active</button>
-                <button id="enableStartup" type="button">Enable Startup</button>
-                <button id="disableStartup" type="button">Disable Startup</button>
+                <button id="refreshVoices" type="button">Audit Voices</button>
             </div>
             <div id="languageMeta" class="meta-line"></div>
+
+            <details class="advanced-block">
+                <summary>Add Language</summary>
+                <div class="form-row advanced-row">
+                    <input id="languageSearch" type="search" placeholder="Search 96 presets">
+                    <select id="presetSelect"></select>
+                    <label class="check"><input id="allowPlaceholder" type="checkbox"> Allow placeholder</label>
+                    <button id="enablePreset" type="button">Install Language</button>
+                </div>
+                <div id="presetMeta" class="meta-line"></div>
+            </details>
+
+            <details class="advanced-block">
+                <summary>Startup</summary>
+                <div class="button-row advanced-row">
+                    <button id="enableStartup" type="button">Enable Startup</button>
+                    <button id="disableStartup" type="button">Disable Startup</button>
+                </div>
+            </details>
         </section>
 
         <section class="panel">
             <div class="section-head">
                 <h2>Voice Library</h2>
-                <button id="refreshVoices" type="button">Audit</button>
+                <span id="libraryLanguage" class="meta-line"></span>
             </div>
             <div class="form-row compact">
                 <input id="voiceId" type="text" value="femalenord" placeholder="VoiceID">
-                <button id="importVoice" type="button">Import</button>
-                <button id="calibrateVoice" type="button">Prepare + Calibrate</button>
-                <button id="buildVoice" type="button">Build One Voice</button>
+                <button id="calibrateVoice" type="button">Prepare Voice</button>
+                <button id="buildVoice" type="button">Build Voice</button>
                 <button id="buildFull" class="danger" type="button">Build Full Library</button>
             </div>
             <div class="voice-summary" id="voiceSummary">No audit loaded.</div>
@@ -112,13 +124,22 @@ $root = omnivoice_root();
             </div>
         </section>
 
-        <section class="panel">
-            <div class="section-head">
-                <h2>Jobs</h2>
+        <details class="panel jobs-panel">
+            <summary class="details-head">
+                <span>Jobs</span>
+            </summary>
+            <div class="button-row job-actions">
                 <button id="refreshJobs" type="button">Refresh Jobs</button>
             </div>
             <div id="jobList" class="job-list"></div>
             <pre id="jobLog" class="job-log"></pre>
+        </details>
+
+        <section class="panel compact-note">
+            <div class="section-head">
+                <h2>Connector</h2>
+            </div>
+            <p>Use OmniVoice from CHIM, Dialectic, or Stobe by enabling the connector toggle. The connector URL stays unchanged; runtime requests route to 127.0.0.1:8021.</p>
         </section>
     </main>
 
