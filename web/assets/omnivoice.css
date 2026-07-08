@@ -2,19 +2,28 @@
     color-scheme: dark;
     --page: #161a20;
     --shell: rgba(24, 28, 35, 0.95);
-    --panel: #202020;
-    --panel-soft: rgba(30, 35, 45, 0.88);
-    --field: #4a4a4a;
-    --field-dark: #2a2a2a;
-    --line: #4a4a4a;
-    --line-soft: rgba(138, 155, 182, 0.3);
-    --text: #f8f9fa;
+    --panel: rgba(42, 42, 42, 0.95);
+    --panel-deep: rgba(26, 26, 26, 0.86);
+    --panel-soft: rgba(34, 34, 34, 0.98);
+    --field: rgba(26, 26, 26, 0.82);
+    --field-dark: #20242c;
+    --line: #3a3a3a;
+    --line-soft: rgba(138, 155, 182, 0.28);
+    --text: #f2f5f9;
     --muted: #aeb8c5;
     --gold: #e6b76c;
-    --yellow: #eaee05;
-    --blue: #097b8d;
+    --gold-hover: #d2a45a;
+    --amber: rgb(242, 124, 17);
+    --blue: #204e7a;
     --green: #176529;
     --red: #8f1515;
+}
+
+@font-face {
+    font-family: "MagicCards";
+    src: url("/Dwemer-Dashboard/css/font/MagicCardsNormal.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
 }
 
 * {
@@ -25,9 +34,9 @@ body {
     margin: 0;
     min-height: 100vh;
     background: linear-gradient(180deg, #23272f 0%, #161a20 100%);
-    color: var(--text);
+    color: #d4d4d4;
     font-family: "Futura CondensedLight", Arial, sans-serif;
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .topbar,
@@ -45,8 +54,8 @@ footer {
     gap: 18px;
     margin-top: 18px;
     padding: 20px;
-    border: 1px solid var(--line-soft);
-    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     background: var(--shell);
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
 }
@@ -61,7 +70,8 @@ h1 {
     font-size: 38px;
     line-height: 1.04;
     font-weight: normal;
-    letter-spacing: 0.5px;
+    font-family: "MagicCards", serif;
+    letter-spacing: 0;
     word-spacing: 8px;
     color: #fff;
     text-shadow:
@@ -73,7 +83,7 @@ h1 {
 
 h2 {
     color: #fff;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 700;
     margin: 0;
 }
@@ -98,19 +108,19 @@ footer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(380px, 0.68fr);
     gap: 16px;
-    padding: 20px;
-    border: 1px solid var(--line-soft);
-    border-top: 0;
-    border-radius: 0 0 12px 12px;
+    padding: 18px 0 0;
+    border: 0;
+    border-radius: 0;
     background: var(--shell);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+    box-shadow: none;
 }
 
 .panel {
-    border: 1px solid var(--line);
-    background: var(--panel);
+    border: 1px solid #3a3a3a;
+    background: linear-gradient(180deg, var(--panel), var(--panel-soft));
     border-radius: 8px;
     padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16), inset 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .status-grid {
@@ -121,21 +131,24 @@ footer {
 }
 
 .status-grid > div {
-    background: var(--field-dark);
-    border: 1px solid #555;
-    border-radius: 5px;
+    background: var(--panel-deep);
+    border: 1px solid var(--line);
+    border-radius: 6px;
     padding: 12px;
+    min-height: 78px;
 }
 
 .label {
     display: block;
     font-size: 13px;
     margin-bottom: 5px;
+    color: #9fb1c9;
 }
 
 strong {
     font-size: 16px;
     font-weight: 700;
+    color: #f8f9fa;
 }
 
 button,
@@ -143,7 +156,7 @@ input,
 select,
 textarea {
     border: 1px solid var(--line-soft);
-    border-radius: 8px;
+    border-radius: 6px;
     color: var(--text);
     font: inherit;
 }
@@ -151,7 +164,7 @@ textarea {
 button {
     min-height: 40px;
     padding: 8px 14px;
-    background: var(--panel-soft);
+    background: rgba(30, 35, 45, 0.88);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -159,13 +172,13 @@ button {
     transition: all 0.2s ease-in-out;
     box-shadow:
         0 2px 6px rgba(0, 0, 0, 0.2),
-        inset 0 1px rgba(255, 255, 255, 0.1);
+        inset 0 1px rgba(255, 255, 255, 0.08);
 }
 
 button:hover {
     transform: translateY(-1px);
     color: #fff;
-    border-color: rgba(230, 183, 108, 0.52);
+    border-color: rgba(230, 183, 108, 0.58);
     box-shadow:
         0 4px 12px rgba(0, 0, 0, 0.3),
         inset 0 1px rgba(255, 255, 255, 0.15);
@@ -193,7 +206,8 @@ button.danger:hover {
 #loadLanguages,
 #refreshVoices,
 #refreshJobs {
-    background-color: rgba(23, 162, 184, 0.8);
+    background-color: rgba(30, 35, 45, 0.88);
+    border-color: rgba(138, 155, 182, 0.36);
 }
 
 #enablePreset,
@@ -202,22 +216,53 @@ button.danger:hover {
 #calibrateVoice,
 #buildVoice,
 #generateTest {
-    background-color: var(--green);
+    background-color: var(--gold);
+    border-color: var(--gold);
+    color: #111;
+    font-weight: 700;
+}
+
+#enablePreset:hover,
+#setActive:hover,
+#importVoice:hover,
+#calibrateVoice:hover,
+#buildVoice:hover,
+#generateTest:hover {
+    background-color: var(--gold-hover);
+    border-color: var(--gold-hover);
+    color: #111;
 }
 
 #runDoctor,
 #startService,
 #enableStartup,
 #disableStartup {
-    background-color: var(--blue);
+    background-color: #5e0505;
+    border-color: #842121;
+}
+
+#runDoctor:hover,
+#startService:hover,
+#enableStartup:hover,
+#disableStartup:hover {
+    background-color: #710909;
+    border-color: #9f2e2e;
 }
 
 input,
 select,
 textarea {
     background: var(--field);
-    border-color: #555;
+    border-color: var(--line);
     padding: 8px 10px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: rgba(230, 183, 108, 0.7);
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(230, 183, 108, 0.13);
 }
 
 input,
@@ -235,7 +280,7 @@ textarea {
 .section-head {
     justify-content: space-between;
     margin-bottom: 12px;
-    border-bottom: 1px solid #343a46;
+    border-bottom: 1px solid #3a3a3a;
     padding-bottom: 10px;
 }
 
@@ -268,7 +313,7 @@ textarea {
 .check input {
     width: 18px;
     height: 18px;
-    accent-color: var(--green);
+    accent-color: var(--gold);
 }
 
 .meta-line,
@@ -283,8 +328,8 @@ textarea {
     max-height: 360px;
     overflow: auto;
     border: 1px solid var(--line);
-    border-radius: 5px;
-    background: #1a1a1a;
+    border-radius: 6px;
+    background: rgba(26, 26, 26, 0.7);
 }
 
 table {
@@ -303,13 +348,13 @@ td {
 th {
     position: sticky;
     top: 0;
-    background: #2d2d2d;
-    color: #fff;
+    background: #2a2a2a;
+    color: var(--gold);
     font-weight: 700;
 }
 
 tr:nth-child(even) {
-    background-color: #1f1f1f;
+    background-color: rgba(255, 255, 255, 0.025);
 }
 
 audio {
@@ -324,16 +369,17 @@ audio {
 }
 
 .job-item {
-    border: 1px solid #555;
-    background: var(--field-dark);
-    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel-deep);
+    border-radius: 6px;
     padding: 10px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .job-item:hover {
-    background-color: #333;
+    background-color: rgba(42, 42, 42, 0.95);
+    border-color: rgba(230, 183, 108, 0.42);
 }
 
 .job-item strong {
@@ -346,8 +392,8 @@ audio {
     overflow: auto;
     margin: 12px 0 0;
     padding: 12px;
-    border-radius: 5px;
-    border: 1px solid #555;
+    border-radius: 6px;
+    border: 1px solid var(--line);
     background: #101010;
     color: #d4d4d4;
     white-space: pre-wrap;
@@ -365,7 +411,7 @@ footer {
 }
 
 .warn {
-    color: var(--yellow);
+    color: #f0cf75;
 }
 
 .fail {
