@@ -2,7 +2,6 @@ const state = {
   status: null,
   languages: null,
   activeLanguage: "sk",
-  selectedJob: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -153,8 +152,7 @@ async function startJob(action, extra = {}) {
     alert(result.error || "Job failed to start.");
     return;
   }
-  state.selectedJob = result.job?.id || null;
-  await loadJobs();
+  await loadStatus().catch(console.error);
 }
 
 async function loadVoices(refresh = false) {
@@ -186,30 +184,6 @@ async function loadVoices(refresh = false) {
     `;
     tbody.append(row);
   }
-}
-
-async function loadJobs() {
-  const data = await jsonApi("jobs.php");
-  const list = $("jobList");
-  list.innerHTML = "";
-  for (const job of data.jobs || []) {
-    const item = document.createElement("div");
-    item.className = "job-item";
-    item.innerHTML = `<strong>${escapeHtml(job.label || job.id)}</strong><span class="${job.state === "completed" ? "ok" : job.state === "failed" ? "fail" : "warn"}">${escapeHtml(job.state || "unknown")}</span> <span>${escapeHtml(job.created_at_utc || "")}</span>`;
-    item.addEventListener("click", async () => {
-      state.selectedJob = job.id;
-      await loadJob(job.id);
-    });
-    list.append(item);
-  }
-  if (state.selectedJob) {
-    await loadJob(state.selectedJob);
-  }
-}
-
-async function loadJob(id) {
-  const data = await jsonApi(`jobs.php?id=${encodeURIComponent(id)}`);
-  $("jobLog").textContent = data.job?.log_tail || "";
 }
 
 async function generateTest() {
@@ -266,16 +240,14 @@ function wireEvents() {
     }
   });
   $("generateTest").addEventListener("click", generateTest);
-  $("refreshJobs").addEventListener("click", loadJobs);
 }
 
 async function boot() {
   wireEvents();
   await loadLanguages();
-  await Promise.allSettled([loadStatus(), loadJobs()]);
+  await loadStatus().catch(console.error);
   await loadVoices(false).catch(console.error);
   setInterval(() => loadStatus().catch(console.error), 10000);
-  setInterval(() => loadJobs().catch(console.error), 5000);
 }
 
 boot().catch((error) => {

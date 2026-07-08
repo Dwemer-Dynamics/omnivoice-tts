@@ -217,8 +217,7 @@ button.danger:hover {
 
 #refreshStatus,
 #loadLanguages,
-#refreshVoices,
-#refreshJobs {
+#refreshVoices {
     background-color: rgba(30, 35, 45, 0.88);
     border-color: rgba(138, 155, 182, 0.36);
 }
@@ -307,27 +306,6 @@ textarea {
     align-self: start;
 }
 
-.details-head {
-    color: var(--gold);
-    cursor: pointer;
-    font-weight: 700;
-    min-height: 34px;
-.details-head:hover {
-    color: #f0cf75;
-}
-
-.details-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    list-style-position: inside;
-}
-
-.details-head button {
-    margin-left: auto;
-}
-
 .meta-line,
 .voice-summary {
     min-height: 22px;
@@ -373,44 +351,6 @@ audio {
     height: 40px;
     flex: 1;
     min-width: 240px;
-}
-
-.job-list {
-    display: grid;
-    gap: 8px;
-}
-
-.job-item {
-    border: 1px solid var(--line);
-    background: var(--panel-deep);
-    border-radius: 6px;
-    padding: 10px;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.job-item:hover {
-    background-color: rgba(42, 42, 42, 0.95);
-    border-color: rgba(230, 183, 108, 0.42);
-}
-
-.job-item strong {
-    display: block;
-}
-
-.job-log {
-    min-height: 190px;
-    max-height: 360px;
-    overflow: auto;
-    margin: 12px 0 0;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    background: #101010;
-    color: #d4d4d4;
-    white-space: pre-wrap;
-    font-family: "Spline Sans Mono", Consolas, monospace;
-    font-size: 13px;
 }
 
 footer {

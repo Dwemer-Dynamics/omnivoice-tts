@@ -105,17 +105,6 @@ $assetVersion = static function (string $path): string {
                 <audio id="audioPlayer" controls></audio>
             </div>
         </section>
-
-        <details class="panel jobs-panel">
-            <summary class="details-head">
-                <span>Jobs</span>
-            </summary>
-            <div class="button-row job-actions">
-                <button id="refreshJobs" type="button">Refresh Jobs</button>
-            </div>
-            <div id="jobList" class="job-list"></div>
-            <pre id="jobLog" class="job-log"></pre>
-        </details>
     </main>
 
     <footer>
