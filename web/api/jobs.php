@@ -58,8 +58,9 @@ if ($action === 'enable_startup') {
 } elseif ($action === 'calibrate_voice') {
     $language = safe_token((string)($body['language'] ?? ''), 'language');
     $voice = safe_token((string)($body['voice'] ?? ''), 'voice');
+    $commands[] = [$python, 'omnivoice_cli.py', 'import-chim', '--language', $language, '--voice', $voice];
     $commands[] = [$python, 'omnivoice_cli.py', 'calibrate', '--language', $language, '--voice', $voice];
-    $label = 'Calibrate ' . $voice . ' for ' . $language;
+    $label = 'Prepare and calibrate ' . $voice . ' for ' . $language;
 } elseif ($action === 'build_voice') {
     $language = safe_token((string)($body['language'] ?? ''), 'language');
     $voice = safe_token((string)($body['voice'] ?? ''), 'voice');

@@ -80,8 +80,8 @@ $root = omnivoice_root();
             <div class="form-row compact">
                 <input id="voiceId" type="text" value="femalenord" placeholder="VoiceID">
                 <button id="importVoice" type="button">Import</button>
-                <button id="calibrateVoice" type="button">Calibrate</button>
-                <button id="buildVoice" type="button">Build One</button>
+                <button id="calibrateVoice" type="button">Prepare + Calibrate</button>
+                <button id="buildVoice" type="button">Build One Voice</button>
                 <button id="buildFull" class="danger" type="button">Build Full Library</button>
             </div>
             <div class="voice-summary" id="voiceSummary">No audit loaded.</div>

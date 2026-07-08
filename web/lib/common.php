@@ -213,6 +213,13 @@ function start_job(string $label, array $commands): array
 {
     $root = omnivoice_root();
     $jobsRoot = jobs_dir();
+    $cacheRoot = $root . '/model_cache';
+    foreach ([$cacheRoot, $cacheRoot . '/huggingface', $cacheRoot . '/huggingface/hub'] as $cacheDir) {
+        if (!is_dir($cacheDir)) {
+            @mkdir($cacheDir, 0777, true);
+        }
+        @chmod($cacheDir, 0777);
+    }
     $jobId = gmdate('YmdHis') . '-' . bin2hex(random_bytes(4));
     $dir = $jobsRoot . '/' . $jobId;
     if (!mkdir($dir, 0775, true) && !is_dir($dir)) {
@@ -221,7 +228,13 @@ function start_job(string $label, array $commands): array
 
     $script = "#!/usr/bin/env bash\n";
     $script .= "set -u\n";
+    $script .= "umask 0000\n";
     $script .= "cd " . escapeshellarg($root) . "\n";
+    $script .= "export HOME=" . escapeshellarg($root) . "\n";
+    $script .= "export XDG_CACHE_HOME=" . escapeshellarg($cacheRoot) . "\n";
+    $script .= "export HF_HOME=" . escapeshellarg($cacheRoot . '/huggingface') . "\n";
+    $script .= "export HUGGINGFACE_HUB_CACHE=" . escapeshellarg($cacheRoot . '/huggingface/hub') . "\n";
+    $script .= "export TRANSFORMERS_CACHE=" . escapeshellarg($cacheRoot . '/huggingface/hub') . "\n";
     $script .= "export PYTHONUTF8=1\n";
     $script .= "export PYTHONIOENCODING=utf-8\n";
     $script .= "echo \"Started: $(date -Is)\"\n";
@@ -231,7 +244,13 @@ function start_job(string $label, array $commands): array
         $script .= "echo " . escapeshellarg('$ ' . implode(' ', $command)) . "\n";
         $script .= shell_join($command) . "\n";
         $script .= "code=$?\n";
-        $script .= "if [ \"\$code\" -ne 0 ]; then break; fi\n";
+        $script .= "if [ \"\$code\" -ne 0 ]; then\n";
+        $script .= "  echo\n";
+        $script .= "  echo \"Command failed: exit=\$code\"\n";
+        $script .= "  echo \"Finished: $(date -Is) exit=\$code\"\n";
+        $script .= "  echo \"\$code\" > " . escapeshellarg($dir . '/exit_code') . "\n";
+        $script .= "  exit \"\$code\"\n";
+        $script .= "fi\n";
     }
     $script .= "echo\n";
     $script .= "echo \"Finished: $(date -Is) exit=\$code\"\n";

@@ -41,9 +41,9 @@ fi
 
 cd "$REPO_DIR"
 
-mkdir -p voices reports logs diagnostics
+mkdir -p voices reports logs diagnostics model_cache model_cache/huggingface model_cache/huggingface/hub
 chmod +x ddistro_install.sh conf.sh start-gpu.sh omnivoice_cli.py
-chmod -R a+rwX voices reports logs diagnostics languages config.json 2>/dev/null || true
+chmod -R a+rwX voices reports logs diagnostics model_cache languages config.json 2>/dev/null || true
 
 if [ "${OMNIVOICE_SKIP_WEB_UI:-0}" = "1" ]; then
     echo "Skipping web UI publishing because OMNIVOICE_SKIP_WEB_UI=1."
