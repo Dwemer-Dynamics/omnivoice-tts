@@ -17,6 +17,7 @@ Included:
 - `verify-lifecycle` command for temporary-directory installer, uninstall, export safety, and engine compatibility-warning checks.
 - `verify-lifecycle` also checks the language catalog flow: 96-preset listing, native preset enablement, placeholder-preset refusal by default, explicit placeholder enablement for editing, and calibration refusal while placeholder text remains.
 - DwemerDistro launcher install card and connector apply support.
+- Local Apache web control panel published at `/OmniVoice/` during install when the web root is available.
 - CHIM/Dialectic Herika-style `xtts-fastapi` connector routing.
 - Stobe native `omnivoice` connector routing through its local TTS provider core.
 

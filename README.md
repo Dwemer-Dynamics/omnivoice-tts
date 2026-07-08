@@ -31,6 +31,13 @@ The installer creates an isolated venv at:
 /home/dwemer/omnivoice-tts/venv
 ```
 
+When the Apache web root is available, the installer also publishes the local
+web control panel at:
+
+```text
+http://127.0.0.1/OmniVoice/
+```
+
 Do not install these dependencies into XTTS' `/home/dwemer/python-tts` venv.
 
 ## Enable Or Disable
@@ -51,7 +58,8 @@ and disabled by removing that symlink. DwemerDistro startup should only start
 OmniVoice when `start.sh` exists.
 
 The menu also exposes language preset listing and preset enablement, including
-the 96 recommended OmniVoice+Whisper presets.
+the 96 recommended OmniVoice+Whisper presets. The same main workflows are
+available in the browser control panel.
 
 ## Service
 

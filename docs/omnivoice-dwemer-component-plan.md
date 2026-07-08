@@ -13,6 +13,7 @@ This plan is intentionally written as a milestone checklist. The final implement
 Implemented locally:
 
 - `omnivoice-tts/` component source directory with Linux installer, config menu, startup script, CLI wrapper, runtime requirements, docs, and ignored data folders.
+- Component-owned browser control panel under `omnivoice-tts/web`, published to `/var/www/html/OmniVoice` during install when Apache's web root is available.
 - User-facing DwemerDistro guide at `docs/omnivoice-tts-user-guide.md`.
 - Release-readiness and licensing gate documentation at `docs/omnivoice-release-readiness.md`.
 - Third-party notices at `omnivoice-tts/THIRD_PARTY_NOTICES.md`; it records ErikErix attribution, MIT component-source licensing, and non-commercial downloaded model/tokenizer constraints.

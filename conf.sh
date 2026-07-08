@@ -53,6 +53,7 @@ Multilingual OmniVoice TTS
 
 Service port: 127.0.0.1:8021
 Install path: $REPO_DIR
+Web panel: http://127.0.0.1/OmniVoice/
 
 1. Enable service (GPU / CUDA)
 2. Disable service

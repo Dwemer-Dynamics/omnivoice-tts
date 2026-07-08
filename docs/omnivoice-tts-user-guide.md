@@ -36,6 +36,13 @@ The installer creates an isolated virtual environment at:
 /home/dwemer/omnivoice-tts/venv
 ```
 
+When the Apache web root is available, the installer also publishes the browser
+control panel at:
+
+```text
+http://127.0.0.1/OmniVoice/
+```
+
 Do not install OmniVoice packages into XTTS, Chatterbox, or PocketTTS venvs.
 
 ## Configure
@@ -49,6 +56,7 @@ Open the configuration menu:
 The menu can:
 
 - Enable or disable the service.
+- Open the same workflows that are available in the browser control panel.
 - Show doctor/status.
 - Run the verification smoke test.
 - List languages.

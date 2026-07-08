@@ -6,6 +6,7 @@ BASE_DIR="${OMNIVOICE_BASE_DIR:-/home/dwemer}"
 REPO_URL="${OMNIVOICE_REPO_URL:-https://github.com/Dwemer-Dynamics/omnivoice-tts}"
 REPO_DIR="$BASE_DIR/omnivoice-tts"
 VENV_DIR="$REPO_DIR/venv"
+WEB_LINK="${OMNIVOICE_WEB_LINK:-/var/www/html/OmniVoice}"
 
 echo "=== DwemerDistro OmniVoice TTS setup ==="
 echo
@@ -42,6 +43,21 @@ cd "$REPO_DIR"
 
 mkdir -p voices reports logs diagnostics
 chmod +x ddistro_install.sh conf.sh start-gpu.sh omnivoice_cli.py
+chmod -R a+rwX voices reports logs diagnostics languages config.json 2>/dev/null || true
+
+if [ "${OMNIVOICE_SKIP_WEB_UI:-0}" = "1" ]; then
+    echo "Skipping web UI publishing because OMNIVOICE_SKIP_WEB_UI=1."
+elif [ -d "$(dirname "$WEB_LINK")" ]; then
+    echo "Publishing web control panel..."
+    if ln -sfn "$REPO_DIR/web" "$WEB_LINK" 2>/dev/null; then
+        echo "Web UI: $WEB_LINK"
+    else
+        echo "WARNING: could not create web UI symlink at $WEB_LINK."
+        echo "         Run with sufficient permissions or set OMNIVOICE_WEB_LINK."
+    fi
+else
+    echo "Apache web root not found; skipping web UI publishing."
+fi
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "Creating Python virtual environment..."
@@ -78,4 +94,7 @@ Run this to enable, disable, select language, or build voices:
   $REPO_DIR/conf.sh
 
 The service is not enabled unless $REPO_DIR/start.sh exists.
+
+If the Apache web root was available, open the web control panel at:
+  http://127.0.0.1/OmniVoice/
 EOF

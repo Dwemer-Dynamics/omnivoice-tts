@@ -5,6 +5,9 @@
 *.md text eol=lf
 *.json text eol=lf
 *.txt text eol=lf
+*.php text eol=lf
+*.css text eol=lf
+*.js text eol=lf
 requirements_*.txt text eol=lf
 LICENSE text eol=lf
 .gitkeep text eol=lf

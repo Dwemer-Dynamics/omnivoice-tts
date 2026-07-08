@@ -1,0 +1,278 @@
+:root {
+    color-scheme: dark;
+    --bg: #101418;
+    --panel: #171d22;
+    --panel-2: #1f272e;
+    --text: #edf2f4;
+    --muted: #94a3ad;
+    --line: #2d3942;
+    --accent: #39c0ba;
+    --accent-2: #f2b84b;
+    --danger: #d66363;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--line);
+    background: #13191e;
+}
+
+h1,
+h2,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 650;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 650;
+}
+
+p,
+.label,
+.meta-line,
+footer {
+    color: var(--muted);
+}
+
+.top-actions,
+.button-row,
+.form-row,
+.section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.7fr);
+    gap: 16px;
+    padding: 16px;
+}
+
+.panel {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.status-grid {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.status-grid > div {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+strong {
+    font-size: 15px;
+    font-weight: 650;
+}
+
+button,
+input,
+select,
+textarea {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #0f1418;
+    color: var(--text);
+    font: inherit;
+}
+
+button {
+    min-height: 36px;
+    padding: 0 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    border-color: var(--accent);
+}
+
+button.primary,
+button:focus-visible {
+    outline: 1px solid var(--accent);
+}
+
+button.danger {
+    border-color: color-mix(in srgb, var(--danger), var(--line));
+    color: #ffd7d7;
+}
+
+input,
+select {
+    height: 36px;
+    padding: 0 10px;
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 88px;
+    padding: 10px;
+    margin: 12px 0;
+}
+
+.section-head {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.form-row {
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.form-row input[type="search"] {
+    min-width: 220px;
+}
+
+.form-row select {
+    min-width: 280px;
+    flex: 1;
+}
+
+.form-row.compact input {
+    width: 180px;
+}
+
+.check {
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.meta-line,
+.voice-summary {
+    min-height: 22px;
+    font-size: 13px;
+}
+
+.table-wrap {
+    margin-top: 12px;
+    max-height: 360px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #151b20;
+}
+
+audio {
+    height: 36px;
+    flex: 1;
+    min-width: 240px;
+}
+
+.job-list {
+    display: grid;
+    gap: 8px;
+}
+
+.job-item {
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    border-radius: 6px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.job-item strong {
+    display: block;
+}
+
+.job-log {
+    min-height: 180px;
+    max-height: 360px;
+    overflow: auto;
+    margin: 12px 0 0;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #0b0f12;
+    color: #cdd7dd;
+    white-space: pre-wrap;
+}
+
+footer {
+    padding: 10px 16px 18px;
+    font-size: 12px;
+}
+
+.ok {
+    color: var(--accent);
+}
+
+.warn {
+    color: var(--accent-2);
+}
+
+.fail {
+    color: var(--danger);
+}
+
+@media (max-width: 1000px) {
+    .layout,
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
