@@ -9,17 +9,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $body = read_json_body();
     $action = (string)($body['action'] ?? '');
 
-    if ($action === 'enable_preset') {
-        $preset = safe_token((string)($body['preset'] ?? ''), 'preset');
-        $args = ['languages', 'enable-preset', $preset];
-        if (!empty($body['allow_placeholder'])) {
-            $args[] = '--allow-placeholder';
-        }
-        $result = run_cli($args, 120);
-        json_response(['ok' => $result['ok'], 'result' => $result], $result['ok'] ? 200 : 500);
-        exit;
-    }
-
     if ($action === 'set_active') {
         $language = safe_token((string)($body['language'] ?? ''), 'language');
         $result = run_cli(['set-language', $language, '--live-if-running'], 60);
@@ -31,26 +20,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$presetsResult = run_cli(['languages', 'presets', '--json'], 60);
-$presets = [];
-if ($presetsResult['ok']) {
-    $decoded = json_decode($presetsResult['stdout'], true);
-    if (is_array($decoded)) {
-        $presets = $decoded;
-    }
-}
-
 $profiles = [];
 foreach (glob($root . '/languages/*.json') ?: [] as $profilePath) {
     $profile = read_json_file($profilePath);
     if (is_array($profile)) {
+        $hasTemplateText = str_contains((string)($profile['bootstrap_text'] ?? ''), 'REPLACE THIS')
+            || str_contains((string)($profile['master_text'] ?? ''), 'REPLACE THIS');
+        if ($hasTemplateText) {
+            continue;
+        }
         $profiles[] = [
             'id' => (string)($profile['id'] ?? basename($profilePath, '.json')),
             'display_name' => (string)($profile['display_name'] ?? basename($profilePath, '.json')),
             'omnivoice_language' => (string)($profile['omnivoice_language'] ?? ''),
             'whisper_language' => (string)($profile['whisper_language'] ?? ''),
-            'placeholder' => str_contains((string)($profile['bootstrap_text'] ?? ''), 'REPLACE THIS')
-                || str_contains((string)($profile['master_text'] ?? ''), 'REPLACE THIS'),
         ];
     }
 }
@@ -61,6 +44,4 @@ json_response([
     'ok' => true,
     'active_language' => (string)($config['active_language'] ?? 'sk'),
     'profiles' => $profiles,
-    'presets' => $presets,
-    'presets_error' => $presetsResult['ok'] ? null : $presetsResult,
 ]);

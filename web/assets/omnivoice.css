@@ -223,7 +223,6 @@ button.danger:hover {
     border-color: rgba(138, 155, 182, 0.36);
 }
 
-#enablePreset,
 #setActive,
 #calibrateVoice,
 #buildVoice,
@@ -234,7 +233,6 @@ button.danger:hover {
     font-weight: 700;
 }
 
-#enablePreset:hover,
 #setActive:hover,
 #calibrateVoice:hover,
 #buildVoice:hover,
@@ -296,10 +294,6 @@ textarea {
     margin-bottom: 12px;
 }
 
-.form-row input[type="search"] {
-    min-width: 220px;
-}
-
 .form-row select {
     min-width: 280px;
     flex: 1;
@@ -313,27 +307,13 @@ textarea {
     align-self: start;
 }
 
-.advanced-block {
-    margin-top: 12px;
-    border-top: 1px solid #3a3a3a;
-    padding-top: 10px;
-}
-
-.advanced-block summary,
 .details-head {
     color: var(--gold);
     cursor: pointer;
     font-weight: 700;
     min-height: 34px;
-}
-
-.advanced-block summary:hover,
 .details-head:hover {
     color: #f0cf75;
-}
-
-.advanced-row {
-    margin-top: 10px;
 }
 
 .details-head {
@@ -346,24 +326,6 @@ textarea {
 
 .details-head button {
     margin-left: auto;
-}
-
-.compact-note p {
-    line-height: 1.5;
-}
-
-.check {
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 40px;
-}
-
-.check input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--gold);
 }
 
 .meta-line,

@@ -43,10 +43,6 @@ function profiles() {
   return state.languages?.profiles || [];
 }
 
-function presets() {
-  return state.languages?.presets || [];
-}
-
 function profileById(id) {
   return profiles().find((item) => item.id === id) || null;
 }
@@ -54,14 +50,6 @@ function profileById(id) {
 function currentLanguage() {
   const select = $("profileSelect");
   return select?.value || state.activeLanguage || profiles()[0]?.id || "sk";
-}
-
-function selectedPreset() {
-  const select = $("presetSelect");
-  if (!select || select.selectedOptions[0]?.disabled) {
-    return "";
-  }
-  return select.value || "";
 }
 
 function currentProfile() {
@@ -116,60 +104,18 @@ function renderProfileOptions() {
   updateLanguageMeta();
 }
 
-function renderPresetOptions() {
-  const select = $("presetSelect");
-  const search = $("languageSearch")?.value.trim().toLowerCase() || "";
-  if (!select) {
-    return;
-  }
-  select.innerHTML = "";
-
-  const installed = new Set(profiles().map((profile) => profile.id));
-  let firstAvailable = "";
-  for (const preset of presets()) {
-    const label = `${preset.id} - ${preset.display_name || preset.omnivoice_language || ""}`;
-    const haystack = `${label} ${(preset.aliases || []).join(" ")}`.toLowerCase();
-    if (search && !haystack.includes(search)) {
-      continue;
-    }
-    const option = document.createElement("option");
-    option.value = preset.id;
-    option.textContent = installed.has(preset.id) ? `${label} (installed)` : label;
-    option.disabled = installed.has(preset.id);
-    if (!option.disabled && !firstAvailable) {
-      firstAvailable = preset.id;
-    }
-    select.append(option);
-  }
-  if (firstAvailable) {
-    select.value = firstAvailable;
-  }
-  updatePresetMeta();
-}
-
 function updateLanguageMeta() {
   const profile = currentProfile();
   if (!profile) {
-    $("languageMeta").textContent = "No installed language profiles found. Add a language first.";
+    $("languageMeta").textContent = "No supported language profiles are installed.";
     setText("libraryLanguage", "");
     setLanguageActionState();
     return;
   }
 
-  const placeholder = profile.placeholder ? "placeholder text present" : "ready profile";
-  $("languageMeta").textContent = `${profile.display_name || profile.id}: OmniVoice ${profile.omnivoice_language || "unknown"}, Whisper ${profile.whisper_language || "unknown"}; ${placeholder}`;
+  $("languageMeta").textContent = `${profile.display_name || profile.id}: OmniVoice ${profile.omnivoice_language || "unknown"}, Whisper ${profile.whisper_language || "unknown"}`;
   setText("libraryLanguage", `${profile.display_name || profile.id} (${profile.id})`);
   setLanguageActionState();
-}
-
-function updatePresetMeta() {
-  const preset = presets().find((item) => item.id === selectedPreset());
-  if (!preset) {
-    $("presetMeta").textContent = "";
-    return;
-  }
-  const nativeSamples = preset.has_native_samples === false ? "placeholder samples" : "native calibration samples";
-  $("presetMeta").textContent = `${preset.display_name || preset.id}: ${preset.omnivoice_language || "OmniVoice"} / ${preset.whisper_language || "Whisper"}; ${nativeSamples}`;
 }
 
 async function loadLanguages() {
@@ -181,12 +127,10 @@ async function loadLanguages() {
     state.languages = data;
     state.activeLanguage = state.languages.active_language || state.activeLanguage;
     renderProfileOptions();
-    renderPresetOptions();
   } catch (error) {
     console.error(error);
-    state.languages = { profiles: [], presets: [] };
+    state.languages = { profiles: [] };
     renderProfileOptions();
-    renderPresetOptions();
     setText("languageMeta", "Could not load installed languages. Check api/languages.php and Apache logs.", "fail");
   }
 }
@@ -308,27 +252,9 @@ function wireEvents() {
   $("runDoctor").addEventListener("click", () => startJob("doctor"));
   $("startService").addEventListener("click", () => startJob("start_service"));
   $("loadLanguages").addEventListener("click", loadLanguages);
-  $("languageSearch").addEventListener("input", renderPresetOptions);
-  $("presetSelect").addEventListener("change", updatePresetMeta);
   $("profileSelect").addEventListener("change", async () => {
     updateLanguageMeta();
     await loadVoices(false);
-  });
-  $("enablePreset").addEventListener("click", async () => {
-    const preset = selectedPreset();
-    if (!preset) {
-      alert("Select a language preset first.");
-      return;
-    }
-    const ok = await languageAction("enable_preset", {
-      preset,
-      allow_placeholder: $("allowPlaceholder").checked,
-    });
-    if (ok) {
-      $("profileSelect").value = preset;
-      updateLanguageMeta();
-      await loadVoices(false);
-    }
   });
   $("setActive").addEventListener("click", () => languageAction("set_active", { language: currentLanguage() }));
   $("refreshVoices").addEventListener("click", () => loadVoices(true));

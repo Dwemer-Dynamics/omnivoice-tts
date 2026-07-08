@@ -65,18 +65,6 @@ $assetVersion = static function (string $path): string {
                 <button id="refreshVoices" type="button">Audit Voices</button>
             </div>
             <div id="languageMeta" class="meta-line"></div>
-
-            <details class="advanced-block">
-                <summary>Add Language</summary>
-                <div class="form-row advanced-row">
-                    <input id="languageSearch" type="search" placeholder="Search 96 presets">
-                    <select id="presetSelect"></select>
-                    <label class="check"><input id="allowPlaceholder" type="checkbox"> Allow placeholder</label>
-                    <button id="enablePreset" type="button">Install Language</button>
-                </div>
-                <div id="presetMeta" class="meta-line"></div>
-            </details>
-
         </section>
 
         <section class="panel">
