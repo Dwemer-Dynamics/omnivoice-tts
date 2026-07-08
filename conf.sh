@@ -1,0 +1,237 @@
+#!/bin/bash
+
+set -euo pipefail
+
+REPO_DIR="/home/dwemer/omnivoice-tts"
+VENV_DIR="$REPO_DIR/venv"
+PORT=8021
+
+if [ ! -d "$REPO_DIR" ]; then
+    echo "Error: OmniVoice TTS is not installed at $REPO_DIR"
+    exit 1
+fi
+
+if [ ! -x "$VENV_DIR/bin/python" ]; then
+    echo "Error: Python venv is missing. Run $REPO_DIR/ddistro_install.sh first."
+    exit 1
+fi
+
+cd "$REPO_DIR"
+source "$VENV_DIR/bin/activate"
+
+port_in_use() {
+    python - "$PORT" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.settimeout(0.5)
+    raise SystemExit(0 if sock.connect_ex(("127.0.0.1", port)) == 0 else 1)
+PY
+}
+
+omnivoice_healthy() {
+    python - <<'PY'
+import urllib.request
+
+try:
+    with urllib.request.urlopen("http://127.0.0.1:8021/health", timeout=2) as response:
+        body = response.read(4096).decode("utf-8", errors="replace")
+    raise SystemExit(0 if response.status == 200 and '"model":"k2-fsa/OmniVoice"' in body else 1)
+except Exception:
+    raise SystemExit(1)
+PY
+}
+
+while true; do
+    if [ -t 1 ]; then
+        clear
+    fi
+    cat << EOF
+Multilingual OmniVoice TTS
+
+Service port: 127.0.0.1:8021
+Install path: $REPO_DIR
+
+1. Enable service (GPU / CUDA)
+2. Disable service
+3. Show doctor/status
+4. Run verification smoke test
+5. List languages
+6. List 96 recommended language presets
+7. Enable a language preset
+8. Set active language
+9. List/audit prepared voices
+10. Import one CHIM VoiceID
+11. Calibrate one VoiceID
+12. Build full selected-language CHIM library
+13. Export voices to another TTS engine
+14. Uninstall runtime (preserve voices)
+0. Exit
+
+EOF
+
+    if ! read -r -p "Select an option: " selection; then
+        exit 0
+    fi
+    selection="${selection//$'\r'/}"
+    selection="${selection//$'\xef\xbb\xbf'/}"
+
+    case "$selection" in
+        1)
+            if port_in_use && ! omnivoice_healthy; then
+                echo "ERROR: port $PORT is already in use on 127.0.0.1."
+                echo "Stop the conflicting service before enabling OmniVoice."
+                read -r -p "Press ENTER to continue." _
+                continue
+            fi
+            ln -sf "$REPO_DIR/start-gpu.sh" "$REPO_DIR/start.sh"
+            chmod +x "$REPO_DIR/start-gpu.sh" "$REPO_DIR/start.sh"
+            echo "[OK] OmniVoice enabled. It will start with DwemerDistro."
+            read -r -p "Press ENTER to continue." _
+            ;;
+        2)
+            rm -f "$REPO_DIR/start.sh"
+            echo "[OK] OmniVoice disabled."
+            read -r -p "Press ENTER to continue." _
+            ;;
+        3)
+            python omnivoice_cli.py doctor
+            if [ -L "$REPO_DIR/start.sh" ] || [ -f "$REPO_DIR/start.sh" ]; then
+                echo "Service enabled: yes"
+            else
+                echo "Service enabled: no"
+            fi
+            if port_in_use; then
+                if omnivoice_healthy; then
+                    echo "Port $PORT: in use by healthy OmniVoice"
+                else
+                    echo "Port $PORT: in use by another or unhealthy service"
+                fi
+            else
+                echo "Port $PORT: free"
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        4)
+            read -r -p "Language id/alias, or leave blank for active language: " lang
+            lang="${lang//$'\r'/}"
+            lang="${lang//$'\xef\xbb\xbf'/}"
+            if [ -n "$lang" ]; then
+                python omnivoice_cli.py verify --language "$lang" --write-library-report
+            else
+                python omnivoice_cli.py verify --write-library-report
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        5)
+            python omnivoice_cli.py languages
+            read -r -p "Press ENTER to continue." _
+            ;;
+        6)
+            python omnivoice_cli.py languages presets
+            read -r -p "Press ENTER to continue." _
+            ;;
+        7)
+            read -r -p "Preset id/name/alias to enable: " preset
+            preset="${preset//$'\r'/}"
+            preset="${preset//$'\xef\xbb\xbf'/}"
+            if [ -z "$preset" ]; then
+                echo "Canceled."
+                read -r -p "Press ENTER to continue." _
+                continue
+            fi
+            read -r -p "Allow placeholder calibration text for editing? Type YES only if you will edit it before building voices: " allow_placeholder
+            allow_placeholder="${allow_placeholder//$'\r'/}"
+            if [ "$allow_placeholder" = "YES" ]; then
+                if python omnivoice_cli.py languages enable-preset "$preset" --allow-placeholder; then
+                    echo "Preset enabled for editing. It will not be set active until placeholder text is replaced."
+                else
+                    echo "Preset was not enabled."
+                fi
+            else
+                if python omnivoice_cli.py languages enable-preset "$preset"; then
+                    read -r -p "Set this as the active language now? Type YES to switch: " set_active
+                    set_active="${set_active//$'\r'/}"
+                    if [ "$set_active" = "YES" ]; then
+                        python omnivoice_cli.py set-language "$preset" --live-if-running
+                    fi
+                else
+                    echo "Preset was not enabled."
+                fi
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        8)
+            read -r -p "Language id/alias (for example sk, cs, es, en): " lang
+            python omnivoice_cli.py set-language "$lang" --live-if-running
+            read -r -p "Press ENTER to continue." _
+            ;;
+        9)
+            read -r -p "Language id/alias or all [all]: " lang
+            lang="${lang:-all}"
+            python omnivoice_cli.py voices --language "$lang" --write-report
+            read -r -p "Press ENTER to continue." _
+            ;;
+        10)
+            read -r -p "Language id/alias: " lang
+            read -r -p "CHIM VoiceID to import: " voice
+            python omnivoice_cli.py import-chim --language "$lang" --voice "$voice"
+            read -r -p "Press ENTER to continue." _
+            ;;
+        11)
+            read -r -p "Language id/alias: " lang
+            read -r -p "VoiceID to calibrate: " voice
+            python omnivoice_cli.py calibrate --language "$lang" --voice "$voice"
+            read -r -p "Press ENTER to continue." _
+            ;;
+        12)
+            read -r -p "Language id/alias: " lang
+            echo "This can take a long time and uses CUDA heavily."
+            read -r -p "Type YES to build/calibrate the full library: " confirm
+            if [ "$confirm" = "YES" ]; then
+                python omnivoice_cli.py import-chim --language "$lang" --all
+                python omnivoice_cli.py build-library --language "$lang" --all
+            else
+                echo "Canceled."
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        13)
+            read -r -p "Language id/alias: " lang
+            read -r -p "Target [zip/chatterbox/pockettts/xtts]: " target
+            target="${target:-zip}"
+            read -r -p "Export one VoiceID, or leave blank to export all: " voice
+            if [ -n "$voice" ]; then
+                python omnivoice_cli.py export --language "$lang" --target "$target" --voice "$voice"
+            else
+                echo "Exporting all voices is explicit because it can overwrite a lot of speaker names."
+                read -r -p "Type YES to export all runtime-ready voices: " confirm
+                if [ "$confirm" = "YES" ]; then
+                    python omnivoice_cli.py export --language "$lang" --target "$target" --all
+                else
+                    echo "Canceled."
+                fi
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        14)
+            echo "This removes the venv and disables startup, but keeps voices/reports by default."
+            read -r -p "Type YES to uninstall runtime: " confirm
+            if [ "$confirm" = "YES" ]; then
+                python omnivoice_cli.py uninstall --yes
+            else
+                python omnivoice_cli.py uninstall
+            fi
+            read -r -p "Press ENTER to continue." _
+            ;;
+        0)
+            exit 0
+            ;;
+        *)
+            echo "Invalid selection."
+            sleep 1
+            ;;
+    esac
+done

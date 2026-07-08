@@ -1,0 +1,16 @@
+{
+  "id": "cs",
+  "display_name": "Czech",
+  "omnivoice_language": "Czech",
+  "omnivoice_language_id": "cs",
+  "whisper_language": "czech",
+  "aliases": ["cz", "cze", "ces", "cesky", "čeština", "cestina"],
+  "bootstrap_text": "Ahoj. Dnes je krásný klidný den. Vítr fouká přes hory, u řeky šumí tráva a u ohně si můžeme v klidu popovídat.",
+  "master_text": "Ráno u řeky kráčí Jiří ke starému hradu. Vítr se opírá do brány a v krbu praská suché dřevo.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

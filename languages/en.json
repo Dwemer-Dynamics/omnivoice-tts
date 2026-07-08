@@ -1,0 +1,16 @@
+{
+  "id": "en",
+  "display_name": "English",
+  "omnivoice_language": "English",
+  "omnivoice_language_id": "en",
+  "whisper_language": "english",
+  "aliases": ["eng"],
+  "bootstrap_text": "Hello. Today is a beautiful and peaceful day. The wind moves across the mountains, the grass rustles by the river, and we can talk quietly beside the fire.",
+  "master_text": "In the morning, George walks beside the river toward the old castle. The wind presses against the gate, and dry wood crackles in the fireplace.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

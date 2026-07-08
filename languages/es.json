@@ -1,0 +1,20 @@
+{
+  "id": "es",
+  "display_name": "Spanish",
+  "omnivoice_language": "Spanish",
+  "omnivoice_language_id": "es",
+  "whisper_language": "spanish",
+  "aliases": [
+    "spa",
+    "espanol",
+    "español"
+  ],
+  "bootstrap_text": "Hola. Hoy hace un día claro y tranquilo. El viento cruza las montañas, las hojas se mueven junto al río y podemos conversar despacio frente al fuego.",
+  "master_text": "Al amanecer, Javier camina por el viejo camino hacia el castillo. Una brisa fresca golpea la puerta, mientras la leña seca cruje suavemente en la chimenea.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}

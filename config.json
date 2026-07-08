@@ -1,0 +1,9 @@
+{
+  "active_language": "sk",
+  "honor_request_language": false,
+  "model_id": "k2-fsa/OmniVoice",
+  "device": "cuda:0",
+  "preferred_default_voice": "",
+  "fallback_male": "malenord",
+  "fallback_female": "femalenord"
+}

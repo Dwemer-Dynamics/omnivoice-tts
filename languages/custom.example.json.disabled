@@ -1,0 +1,16 @@
+{
+  "id": "my-language",
+  "display_name": "My Language",
+  "omnivoice_language": "Exact value accepted by the installed OmniVoice build",
+  "omnivoice_language_id": "official-omnivoice-id",
+  "whisper_language": "language name or code accepted by Whisper",
+  "aliases": ["optional-alias"],
+  "bootstrap_text": "Write a natural, calm sentence of roughly ten to twenty seconds in the target language.",
+  "master_text": "Write a second natural sentence with varied consonants, vowels, rhythm and punctuation.",
+  "bootstrap_count": 3,
+  "master_count": 6,
+  "bootstrap_num_step": 32,
+  "master_num_step": 64,
+  "bootstrap_speed": 1.0,
+  "master_speed": 0.75
+}
