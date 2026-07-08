@@ -126,7 +126,7 @@ footer {
 .status-grid {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(6, minmax(140px, 1fr));
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
     gap: 10px;
 }
 
@@ -245,17 +245,13 @@ button.danger:hover {
 }
 
 #runDoctor,
-#startService,
-#enableStartup,
-#disableStartup {
+#startService {
     background-color: #5e0505;
     border-color: #842121;
 }
 
 #runDoctor:hover,
-#startService:hover,
-#enableStartup:hover,
-#disableStartup:hover {
+#startService:hover {
     background-color: #710909;
     border-color: #9f2e2e;
 }

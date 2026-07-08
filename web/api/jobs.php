@@ -33,14 +33,7 @@ $action = (string)($body['action'] ?? '');
 $commands = [];
 $label = '';
 
-if ($action === 'enable_startup') {
-    $commands[] = ['ln', '-sf', $root . '/start-gpu.sh', $root . '/start.sh'];
-    $commands[] = ['chmod', '+x', $root . '/start-gpu.sh', $root . '/start.sh'];
-    $label = 'Enable OmniVoice startup';
-} elseif ($action === 'disable_startup') {
-    $commands[] = ['rm', '-f', $root . '/start.sh'];
-    $label = 'Disable OmniVoice startup';
-} elseif ($action === 'start_service') {
+if ($action === 'start_service') {
     $commands[] = [$root . '/start-gpu.sh'];
     $label = 'Start OmniVoice service';
 } elseif ($action === 'doctor') {

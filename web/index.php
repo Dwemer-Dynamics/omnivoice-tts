@@ -37,10 +37,6 @@ $assetVersion = static function (string $path): string {
                 <strong id="serviceState">Checking</strong>
             </div>
             <div>
-                <span class="label">Startup</span>
-                <strong id="startupState">Checking</strong>
-            </div>
-            <div>
                 <span class="label">Language</span>
                 <strong id="activeLanguage">Unknown</strong>
             </div>
@@ -81,13 +77,6 @@ $assetVersion = static function (string $path): string {
                 <div id="presetMeta" class="meta-line"></div>
             </details>
 
-            <details class="advanced-block">
-                <summary>Startup</summary>
-                <div class="button-row advanced-row">
-                    <button id="enableStartup" type="button">Enable Startup</button>
-                    <button id="disableStartup" type="button">Disable Startup</button>
-                </div>
-            </details>
         </section>
 
         <section class="panel">

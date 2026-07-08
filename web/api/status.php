@@ -14,7 +14,6 @@ json_response([
     'root' => $root,
     'service_url' => OMNIVOICE_SERVICE_URL,
     'running' => is_array($health) && (($health['status'] ?? '') === 'ok'),
-    'startup_enabled' => file_exists($root . '/start.sh'),
     'health' => $health,
     'provider' => $provider,
     'config' => $config,

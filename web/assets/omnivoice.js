@@ -87,7 +87,6 @@ async function loadStatus() {
   state.activeLanguage = active.id || data.config?.active_language || state.activeLanguage;
 
   setText("serviceState", data.running ? "Running" : "Stopped", data.running ? "ok" : "warn");
-  setText("startupState", data.startup_enabled ? "Enabled" : "Disabled", data.startup_enabled ? "ok" : "warn");
   setText("activeLanguage", active.display_name ? `${active.display_name} (${active.id})` : state.activeLanguage);
   setText("voiceCount", String(health.voice_count ?? 0), (health.voice_count || 0) > 0 ? "ok" : "warn");
   setText("gpuName", health.gpu || "Unknown", health.cuda ? "ok" : "warn");
@@ -332,8 +331,6 @@ function wireEvents() {
     }
   });
   $("setActive").addEventListener("click", () => languageAction("set_active", { language: currentLanguage() }));
-  $("enableStartup").addEventListener("click", () => startJob("enable_startup"));
-  $("disableStartup").addEventListener("click", () => startJob("disable_startup"));
   $("refreshVoices").addEventListener("click", () => loadVoices(true));
   $("calibrateVoice").addEventListener("click", () => startJob("calibrate_voice", { language: currentLanguage(), voice: $("voiceId").value }));
   $("buildVoice").addEventListener("click", () => startJob("build_voice", { language: currentLanguage(), voice: $("voiceId").value }));
