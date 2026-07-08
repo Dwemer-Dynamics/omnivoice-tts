@@ -15,7 +15,7 @@ Implemented locally:
 - `omnivoice-tts/` component source directory with Linux installer, config menu, startup script, CLI wrapper, runtime requirements, docs, and ignored data folders.
 - User-facing DwemerDistro guide at `docs/omnivoice-tts-user-guide.md`.
 - Release-readiness and licensing gate documentation at `docs/omnivoice-release-readiness.md`.
-- Third-party notices draft at `omnivoice-tts/THIRD_PARTY_NOTICES.md`; it records current upstream signals but does not grant release approval.
+- Third-party notices at `omnivoice-tts/THIRD_PARTY_NOTICES.md`; it records ErikErix attribution, MIT component-source licensing, and non-commercial downloaded model/tokenizer constraints.
 - End-to-end `verify` smoke command that writes `diagnostics/verify_latest.json`.
 - Temporary-directory `verify-lifecycle` command for installer, uninstall, and export safety checks.
 - DwemerDistro startup support in `dwemerdistro/etc/start_env`, gated by `/home/dwemer/omnivoice-tts/start.sh`.
@@ -42,7 +42,9 @@ Verified locally:
 - WSL reports CUDA visibility through `nvidia-smi`.
 - Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `127.0.0.1:8021`.
 - `/var/www/html/HerikaServer/data/voices` and `/var/www/html/StobeServer` exist in the live distro.
-- Private GitHub staging repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated. Keep it private until publication permission and model/tokenizer license review are complete.
+- GitHub repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated.
+- ErikErix granted Dwemer Dynamics permission to publish and adapt the submitted tool as this component.
+- Component source is MIT licensed; downloaded pretrained OmniVoice model/tokenizer use must be treated as non-commercial.
 - Upstream `k2-fsa/OmniVoice` exists on Hugging Face, and the pinned Python packages are currently discoverable by `pip index`.
 - Local WSL install from the unpublished checkout succeeded at `/home/dwemer/omnivoice-tts`.
 - OmniVoice venv dependency install completed and `python -m pip check` reported no broken requirements.
@@ -80,16 +82,15 @@ Verified locally:
 
 Not verified yet:
 
-- Fresh public-user install from GitHub, because the component repo is private until publication and license gates are resolved.
-- Fresh public-user install directly from the launcher button, because the launcher command clones the GitHub repo and the repo must remain private until release gates are resolved.
+- Fresh public-user install from GitHub after repo visibility/license updates.
+- Fresh public-user install directly from the launcher button after repo visibility/license updates.
 - In-game CHIM, Stobe, and Dialectic speech playback, although the shared local API and database connector rows are verified.
 - Public package release from GitHub/Nexus.
 
 Release blockers:
 
-- The submitted archive did not include an explicit license or publication permission. Do not publish a public repo or Nexus package until this is resolved with the original author.
-- `Dwemer-Dynamics/omnivoice-tts` now exists as a private staging repo, but it must not be made public or used for public launcher installs until release gates are resolved.
-- Upstream OmniVoice/model/dependency licenses must be reviewed before public release.
+- Fresh public launcher/GitHub install must be verified after repo visibility/license updates.
+- Public docs and launcher/Nexus copy must keep the non-commercial downloaded model/tokenizer constraint visible.
 - Release-readiness details are recorded in `docs/omnivoice-release-readiness.md`.
 
 ## Non-Goals
@@ -141,8 +142,8 @@ Rationale:
 
 Before public release:
 
-- Confirm license compatibility for `omnivoice`, `k2-fsa/OmniVoice`, PyTorch wheels, Transformers, Whisper, WavLM, and any copied code from the submitted tool.
-- Preserve attribution from the submitted tool where required.
+- Preserve ErikErix attribution for the submitted tool.
+- Distinguish MIT component source from non-commercial downloaded pretrained model/tokenizer terms.
 - Remove all user-generated voices, reports, model caches, logs, and CHIM-derived data.
 
 ## Runtime Contract
@@ -534,7 +535,7 @@ Recorded on the local Windows/WSL development machine after the full Slovak buil
 - Source-package audit found no files larger than 5 MB and no generated voice, report, log, or diagnostic files under `omnivoice-tts`.
 - `docs/omnivoice-tts-user-guide.md` covers install, configure, enable/disable, one-voice build, full library build, custom voices, connector apply, health checks, exports, hardware requirements, and limitations.
 - `docs/omnivoice-release-readiness.md` records the submitted-tool permission gap, upstream OmniVoice model/tokenizer license concerns, runtime package license snapshot, and public launcher/repo release gates.
-- `omnivoice-tts/THIRD_PARTY_NOTICES.md` records a public-repo preparation notice draft for submitted-tool permission, OmniVoice code/model/tokenizer signals, and the local runtime package snapshot.
+- `omnivoice-tts/THIRD_PARTY_NOTICES.md` records ErikErix attribution, OmniVoice code/model/tokenizer signals, non-commercial model/tokenizer constraints, and the local runtime package snapshot.
 - First-run setup source confirms OmniVoice is not selected by default: `DistroSetupService` presets reference only CUDA, Chatterbox or Pocket-TTS, Minime/TXT2VEC, and Parakeet, while OmniVoice is only detected by `VoiceEngineService` when present.
 
 Verification refresh on July 8, 2026:
@@ -581,6 +582,6 @@ Verification refresh on July 8, 2026:
 
 Still blocked or not proven:
 
-- Fresh public-user launcher install from GitHub is blocked because `Dwemer-Dynamics/omnivoice-tts` is intentionally private until publication permission and license review are resolved.
-- Public release is blocked until original-author publication permission/license and upstream model/dependency license compatibility are confirmed.
+- Fresh public-user launcher install from GitHub is not yet proven after repo visibility/license updates.
+- Public release copy must retain the non-commercial downloaded model/tokenizer constraint.
 - In-game CHIM, Stobe, and Dialectic playback is not proven in the games; the local API, connector rows, and PHP code paths are verified.

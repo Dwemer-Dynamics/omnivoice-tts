@@ -5,13 +5,12 @@ DwemerDistro OmniVoice TTS component.
 
 ## Current Decision
 
-Local DwemerDistro integration can continue, but public release is blocked until
-the original submitted-tool author grants explicit publication permission and the
-upstream OmniVoice model/tokenizer licensing is reviewed.
+Local DwemerDistro integration can continue, and the component source can be
+published under MIT with ErikErix attribution. Public release must clearly state
+that downloaded pretrained OmniVoice model/tokenizer use is non-commercial.
 
-Do not make the private `Dwemer-Dynamics/omnivoice-tts` staging repo public,
-publish a Nexus package, or ship a launcher release that installs OmniVoice for
-users until the blockers below are resolved.
+Before a public launcher/Nexus release, verify a fresh GitHub install and keep
+the non-commercial model/tokenizer terms visible in user-facing docs.
 
 ## Local Submitted Tool
 
@@ -28,18 +27,15 @@ Observed:
   the fact that generated voices are local.
 - No file matching license, licence, notice, copying, credit, attribution, or
   similar publication terms was found under the submitted package.
-- The readme does not grant permission to republish, relicense, fork publicly, or
-  distribute modified source.
 
-Required before public release:
+Resolved publication status:
 
-- Get explicit written permission from the original author to publish the
-  extracted/adapted component source under the intended Dwemer Dynamics license.
-- Preserve any author credit or notices the author requires.
-- Confirm whether any source files were copied from the submitted package and
-  whether those files need a third-party notice in the new repo.
+- ErikErix granted Dwemer Dynamics permission to publish and adapt the submitted
+  tool as this component.
+- Attribution is recorded in `README.md` and `THIRD_PARTY_NOTICES.md`.
+- The component source is published under the MIT License.
 
-Tracked in the private staging repo as
+Previously tracked in the private staging repo as
 `Dwemer-Dynamics/omnivoice-tts#1`.
 
 ## Upstream OmniVoice
@@ -64,15 +60,13 @@ Current upstream signal:
 
 Release implication:
 
-- Shipping integration code that downloads the user's local model cache may be
-  acceptable, but this still needs license review because launcher-supported
-  installation materially facilitates model use.
-- Do not market the component as commercially usable unless the pretrained model
-  and tokenizer terms are confirmed compatible with that claim.
-- Public docs should say "local optional component" and avoid stronger claims
-  about redistribution or commercial use.
+- This component can be released as a non-commercial local optional component.
+- Do not market the downloaded pretrained model/tokenizer stack as commercially
+  usable.
+- Public docs must distinguish this repository's MIT source license from the
+  downloaded pretrained model/tokenizer terms.
 
-Tracked in the private staging repo as
+Previously tracked in the private staging repo as
 `Dwemer-Dynamics/omnivoice-tts#2`.
 
 ## Runtime Package Snapshot
@@ -106,13 +100,11 @@ Private staging status:
 - The repo does not contain generated voices, CHIM source WAVs, model weights,
   model cache, diagnostics, reports, or logs.
 
-Before making `Dwemer-Dynamics/omnivoice-tts` public:
+Before making or keeping `Dwemer-Dynamics/omnivoice-tts` public:
 
-- Add a repo `LICENSE` chosen by Dwemer Dynamics and compatible with copied
-  source ownership.
+- Include the MIT `LICENSE`.
 - Add `THIRD_PARTY_NOTICES.md` covering OmniVoice, tokenizer/model terms, and
-  material runtime dependencies. A draft now exists in the local component
-  source, but it must be reviewed before public release.
+  material runtime dependencies.
 - Add `README.md` language that clearly distinguishes code license from model
   license.
 - Add `RELEASE_NOTES.md`.
@@ -128,10 +120,10 @@ Before making `Dwemer-Dynamics/omnivoice-tts` public:
 The launcher can keep the optional install/config/status UI locally, but a public
 launcher release should not expose a working install button until:
 
-- `Dwemer-Dynamics/omnivoice-tts` has been approved for public visibility.
 - The repo has license and third-party notice files.
 - Author publication permission is recorded.
-- Model/tokenizer terms are reviewed and reflected in user-facing docs.
+- Non-commercial model/tokenizer terms are reflected in user-facing docs.
+- Fresh launcher/GitHub install has been verified.
 
-Tracked in the private staging repo as
+Tracked in the staging repo as
 `Dwemer-Dynamics/omnivoice-tts#3`.

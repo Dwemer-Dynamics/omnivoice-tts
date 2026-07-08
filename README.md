@@ -198,21 +198,25 @@ arbitrary file path.
 - Stobe and Dialectic need generic/custom voice setup because their voice IDs
   do not map directly to Skyrim VoiceIDs.
 
-## License And Attribution Status
+## License And Attribution
 
 This component is derived from the submitted "Multilingual 96-Language TTS Tool
-v1.1" Windows package. The submitted archive did not include a license file.
-Do not publish this as a public repo or Nexus package until the original
-author confirms the license/permission terms and preferred attribution.
+v1.1" Windows package by ErikErix. ErikErix granted Dwemer Dynamics permission
+to publish and adapt the submitted tool as this component.
 
-See `THIRD_PARTY_NOTICES.md` for the current release-preparation notice draft.
+This repository's component source and documentation are licensed under the MIT
+License. See `LICENSE`.
 
-Before release, also confirm redistribution compatibility for the runtime
-dependencies and downloaded models. The installed `omnivoice` Python package and
-the upstream `k2-fsa/OmniVoice` code currently report Apache-2.0, but the
-upstream Hugging Face model page states that the pretrained model is CC-BY-NC,
-and the tokenizer has separate license terms. Treat that as a public-release
-gate until reviewed.
+The MIT license applies to this repository's code only. It does not relicense
+downloaded third-party models, tokenizers, or Python packages.
+
+The installed `omnivoice` Python package and the upstream `k2-fsa/OmniVoice`
+code currently report Apache-2.0, but the upstream Hugging Face model page
+states that the pretrained model is CC-BY-NC, and the tokenizer has separate
+license terms. Treat use of the downloaded pretrained OmniVoice model/tokenizer
+stack as non-commercial.
+
+See `THIRD_PARTY_NOTICES.md` for attribution and upstream notices.
 
 This repo must continue to exclude model weights, generated voice libraries,
 Skyrim assets, CHIM files, logs, diagnostics, and user-created voices.

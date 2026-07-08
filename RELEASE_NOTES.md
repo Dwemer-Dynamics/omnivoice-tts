@@ -20,11 +20,12 @@ Included:
 - CHIM/Dialectic Herika-style `xtts-fastapi` connector routing.
 - Stobe native `omnivoice` connector routing through its local TTS provider core.
 
-Known blockers before public release:
+Release constraints:
 
-- The submitted source package needs explicit publication/license permission from the original author.
-- Upstream OmniVoice/model/dependency license compatibility must be reviewed. The Python package/code currently report Apache-2.0, but the upstream pretrained model is currently documented as CC-BY-NC and tokenizer terms need review.
-- `Dwemer-Dynamics/omnivoice-tts` exists as a private staging repo, but must remain private until publication permission and license review are complete.
+- ErikErix granted Dwemer Dynamics permission to publish and adapt the submitted Windows companion tool.
+- This repository's component source is licensed under the MIT License.
+- The MIT license applies to this repository's code and documentation only. It does not relicense downloaded third-party models, tokenizers, or Python packages.
+- The Python package/code currently report Apache-2.0, but the upstream pretrained OmniVoice model is documented as CC-BY-NC and tokenizer terms are separate. Treat use of the downloaded pretrained model/tokenizer stack as non-commercial.
 
 Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 
@@ -43,5 +44,5 @@ Runtime verification completed in the local `DwemerAI4Skyrim3` distro:
 
 Still not verified:
 
-- Fresh public-user install from the launcher/GitHub, because the repo is intentionally private until public-release gates are resolved.
+- Fresh public-user install from the launcher/GitHub.
 - In-game CHIM, Stobe, and Dialectic playback.

@@ -1,12 +1,11 @@
-# Third-Party Notices Draft
+# Third-Party Notices
 
-This file is a release-preparation draft for the optional DwemerDistro
-OmniVoice TTS component. It is not legal approval to publish the component.
+This file records source attribution and upstream runtime/model notices for the
+optional DwemerDistro OmniVoice TTS component.
 
-Do not publish a public repository, Nexus package, or launcher release that
-installs this component until the submitted-tool author has granted explicit
-publication permission and Dwemer Dynamics has completed a model/tokenizer
-license review.
+The component source in this repository is licensed under the MIT License. The
+MIT license applies to this repository's code and documentation only. It does
+not relicense downloaded third-party models, tokenizers, or Python packages.
 
 ## Submitted Companion Tool
 
@@ -15,9 +14,10 @@ for CHIM v1.1.0 CustomVoices" package.
 
 Current status:
 
-- The submitted package did not include a license file or publication terms.
-- Written permission is required before publishing adapted source.
-- Any author-requested attribution must be added here before release.
+- ErikErix granted Dwemer Dynamics permission to publish and adapt the
+  submitted tool as this DwemerDistro component.
+- Attribution: original submitted Windows companion tool by ErikErix.
+- Dwemer Dynamics publishes this adapted component source under the MIT License.
 
 ## OmniVoice
 
@@ -37,11 +37,12 @@ Current upstream signal checked on July 8, 2026:
 
 Release implication:
 
-- This DwemerDistro component must not claim commercial-use compatibility until
-  the pretrained model and tokenizer terms are reviewed.
-- If the component remains a code-only installer that downloads models onto the
-  user's machine, the release notes and README still need to disclose model and
-  tokenizer terms clearly.
+- Treat this component as non-commercial when used with the downloaded
+  pretrained OmniVoice model/tokenizer stack.
+- Do not claim commercial-use compatibility for the downloaded pretrained model
+  or tokenizer.
+- The installer downloads models onto the user's machine; those upstream terms
+  continue to apply independently from this repository's MIT source license.
 
 ## Runtime Dependencies
 
