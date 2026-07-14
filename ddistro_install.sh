@@ -86,18 +86,3 @@ if [ "${OMNIVOICE_SKIP_DOCTOR:-0}" = "1" ]; then
 else
     python omnivoice_cli.py doctor || true
 fi
-
-cat << EOF
-
-Install complete.
-
-OmniVoice starts automatically with DwemerDistro while this component is installed.
-Use the launcher Installed Components flow, or the uninstall option in:
-  $REPO_DIR/conf.sh
-
-Run this to select language, inspect status, or build voices:
-  $REPO_DIR/conf.sh
-
-If the Apache web root was available, open the web control panel at:
-  http://127.0.0.1/OmniVoice/
-EOF
