@@ -35,6 +35,12 @@ from language_profiles import (
     save_runtime_config,
 )
 from voice_library import audit_voice_dir, voice_id_problem
+from voice_management import (
+    ProtectedVoiceError,
+    VoiceNotFoundError,
+    delete_custom_voice,
+    normalize_voice_id as normalize_managed_voice_id,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -512,6 +518,8 @@ def voice_library_items(profile: LanguageProfile) -> list[dict]:
                 "calibrated": audit.calibrated,
                 "calibration_status": audit.calibration_status,
                 "custom_voice": bool(metadata.get("custom_voice", False)),
+                "can_delete": bool(metadata.get("custom_voice", False)),
+                "source": metadata.get("voice_origin", "managed_library"),
                 "reference_wav": str(directory / "reference.wav"),
                 "reference_text": str(directory / "reference.txt"),
                 "reference_text_source": metadata.get("reference_text_source"),
@@ -1357,6 +1365,59 @@ async def upload_sample(
         **result,
         "status": "ok" if result["status"] == "runtime_ready" else result["status"],
         "import_status": result["status"],
+    }
+
+
+@app.delete("/voices/{voice_id}")
+def delete_voice(
+    voice_id: str,
+    language: str | None = Query(default=None),
+) -> dict:
+    with runtime.lock:
+        profile = resolve_optional_language(language)
+
+    try:
+        normalized = normalize_managed_voice_id(voice_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_voice_id", "voice_id": voice_id, "reason": str(exc)},
+        ) from exc
+
+    try:
+        with generation_lock:
+            removed = delete_custom_voice(VOICES_ROOT, profile.id, normalized)
+            if (
+                profile.id == runtime.active_language.id
+                and str(runtime.config.get("preferred_default_voice", "")).strip() == normalized
+            ):
+                runtime.config["preferred_default_voice"] = ""
+                save_runtime_config(CONFIG_PATH, runtime.config)
+            if profile.id == runtime.active_language.id:
+                runtime.reload_voices()
+    except VoiceNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "voice_not_found", "voice_id": normalized, "language": profile.id},
+        ) from exc
+    except ProtectedVoiceError as exc:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "protected_voice",
+                "voice_id": normalized,
+                "language": profile.id,
+                "hint": "Only custom uploaded voices can be deleted through the API.",
+            },
+        ) from exc
+
+    return {
+        "status": "deleted",
+        "voice_id": normalized,
+        "language": profile.id,
+        "removed": removed,
+        "cache_invalidated": profile.id == runtime.active_language.id,
+        "default_voice": runtime.default_voice if profile.id == runtime.active_language.id else None,
     }
 
 
