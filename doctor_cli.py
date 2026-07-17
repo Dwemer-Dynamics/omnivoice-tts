@@ -309,7 +309,7 @@ def build_report(*, include_imports: bool = True) -> DoctorReport:
     else:
         checks.append(CheckResult("port_8021", "warning", "in use by another or unhealthy service"))
     checks.append(health_check)
-    checks.append(CheckResult("bind_address", "ok", "127.0.0.1"))
+    checks.append(CheckResult("bind_address", "ok", "0.0.0.0 via start-gpu.sh; direct CLI defaults to 127.0.0.1"))
     checks.append(check_chim_source())
     checks.append(check_model_cache())
     for folder in ("voices", "reports", "logs", "diagnostics"):

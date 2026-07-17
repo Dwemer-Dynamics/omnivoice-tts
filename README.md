@@ -1,9 +1,10 @@
 # OmniVoice TTS for DwemerDistro
 
 OmniVoice TTS is an optional DwemerDistro component that runs inside the
-`DwemerAI4Skyrim3` WSL distro and exposes a local OmniVoice TTS API on
-`127.0.0.1:8021`, with compatibility endpoints for existing DwemerDistro TTS
-callers.
+`DwemerAI4Skyrim3` WSL distro and exposes an OmniVoice TTS API on port `8021`,
+with compatibility endpoints for existing DwemerDistro TTS callers. The
+DwemerDistro startup script enables LAN access in the same way as XTTS, while a
+direct CLI launch remains loopback-only unless `--listen` is supplied.
 
 The component is intended to support multilingual CHIM voice libraries first,
 with CHIM, Stobe, and Dialectic integration handled through native OmniVoice TTS
@@ -61,6 +62,14 @@ Start manually:
 
 ```bash
 /home/dwemer/omnivoice-tts/start-gpu.sh
+```
+
+The DwemerDistro startup script binds to `0.0.0.0:8021` so Windows can forward
+the service to another PC on the local network. A direct CLI launch remains
+local by default; add `--listen` to expose it:
+
+```bash
+python omnivoice_cli.py server --listen --port 8021
 ```
 
 Health check:
@@ -136,10 +145,11 @@ python omnivoice_cli.py uninstall --yes
 ```
 
 The `verify` command is the release/smoke-test entrypoint. It runs doctor,
-checks `/health` and `/provider_info`, confirms the service is loopback-bound,
-audits the selected language library, verifies the XTTS-compatible service
-contract endpoints and extended speaker metadata, and synthesizes fallback
-voices. It writes `diagnostics/verify_latest.json` by default.
+checks `/health` and `/provider_info`, confirms the service has a valid LAN or
+loopback listener, audits the selected language library, verifies the
+XTTS-compatible service contract endpoints and extended speaker metadata, and
+synthesizes fallback voices. It writes `diagnostics/verify_latest.json` by
+default.
 
 For a full DwemerDistro connector check, add site synthesis:
 
@@ -169,6 +179,10 @@ voice_field = voiceid
 language = en, es, fr, pl, pt-br, or another installed profile id
 ```
 
+For remote hosting, forward TCP port `8021` from the TTS computer's Windows
+host to its WSL address, allow that port through Windows Firewall, and set the
+connector URL to `http://<TTS_COMPUTER_LAN_IP>:8021`.
+
 The native connector switches OmniVoice's active language through
 `POST /active_language` before synthesis, then sends `text`, `speaker_wav`, and
 `language` to `/tts_to_audio`. OmniVoice does not require XTTS, Chatterbox, or
@@ -197,7 +211,8 @@ arbitrary file path.
 ## Current Limitations
 
 - NVIDIA CUDA is required for the OmniVoice runtime.
-- The component is designed for local WSL use and binds to `127.0.0.1`.
+- The API has no authentication. Only expose port `8021` on a trusted LAN and
+  restrict the Windows Firewall rule to the gaming PC where practical.
 - Language profiles are presets. Not every preset has been quality evaluated.
 - Stobe and Dialectic need generic/custom voice setup because their voice IDs
   do not map directly to Skyrim VoiceIDs.

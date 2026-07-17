@@ -9,12 +9,17 @@ Included:
 - Linux/WSL installer for `/home/dwemer/omnivoice-tts`.
 - Isolated Python virtual environment.
 - Automatic DwemerDistro startup while the component is installed.
-- FastAPI XTTS-compatible service on `127.0.0.1:8021`.
+- FastAPI XTTS-compatible service on port `8021`, with LAN access enabled by
+  the DwemerDistro startup script and loopback-only direct CLI startup by
+  default.
 - Active voice-library auto-sync on API requests after voice folders are added, updated, or removed.
 - CLI for doctor, language selection, CHIM import, custom voices, calibration, library audit, export, uninstall, and server startup.
 - Language catalog developer commands for listing recommended OmniVoice+Whisper presets and enabling selected presets as editable JSON profiles.
 - `conf.sh` exposes installed-language selection, diagnostics, voice import/build workflows, exports, and uninstall for launcher Configure users.
-- End-to-end `verify` command for doctor, service health, loopback binding, voice library audit, XTTS-compatible service contract checks, synthesis smoke checks, and optional DwemerDistro service listener/database/site connector checks.
+- End-to-end `verify` command for doctor, service health, LAN or loopback
+  binding, voice library audit, XTTS-compatible service contract checks,
+  synthesis smoke checks, and optional DwemerDistro service
+  listener/database/site connector checks.
 - `verify-lifecycle` command for temporary-directory installer, uninstall, export safety, and engine compatibility-warning checks.
 - `verify-lifecycle` also checks the language catalog developer flow: preset listing, native preset enablement, placeholder-preset refusal by default, explicit placeholder enablement for editing, and calibration refusal while placeholder text remains.
 - DwemerDistro launcher install card and connector apply support.

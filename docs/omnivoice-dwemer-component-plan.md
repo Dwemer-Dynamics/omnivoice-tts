@@ -4,7 +4,7 @@
 
 Implement Multilingual OmniVoice TTS as a first-class optional DwemerDistro component.
 
-The component must install and run inside the `DwemerAI4Skyrim3` WSL distro, expose a CHIM-compatible local TTS API on `127.0.0.1:8021`, integrate with the DwemerDistro launcher install/status/config flows, and support CHIM/Skyrim first while providing a credible path for Stobe/Kenshi and Dialectic/Fallout.
+The component must install and run inside the `DwemerAI4Skyrim3` WSL distro, expose a CHIM-compatible TTS API on port `8021` for local and trusted-LAN clients, integrate with the DwemerDistro launcher install/status/config flows, and support CHIM/Skyrim first while providing a credible path for Stobe/Kenshi and Dialectic/Fallout.
 
 This plan is intentionally written as a milestone checklist. The final implementation is not complete until every milestone has either been implemented and verified, or explicitly documented as blocked by an external dependency such as repository permissions, licensing uncertainty, or model availability.
 
@@ -42,7 +42,7 @@ Verified locally:
 - `ddistro_install.sh`, `conf.sh`, `conf_services`, and the LF-normalized `start_env` pass `bash -n`.
 - `dotnet build DwemerDistro-Launcher/DwemerDistroLauncherWpf.sln --no-restore` succeeds with zero warnings and zero errors.
 - WSL reports CUDA visibility through `nvidia-smi`.
-- Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `127.0.0.1:8021`.
+- Live `DwemerAI4Skyrim3` currently has OmniVoice listening on `0.0.0.0:8021`.
 - `/var/www/html/HerikaServer/data/voices` and `/var/www/html/StobeServer` exist in the live distro.
 - GitHub repo `Dwemer-Dynamics/omnivoice-tts` exists and is populated.
 - GitHub repo `Dwemer-Dynamics/omnivoice-tts` is public.
@@ -57,11 +57,12 @@ Verified locally:
 - `femalenord` calibrated successfully and audits as `runtime_ready=1` and `calibrated=1`.
 - Service enablement through `start.sh` was verified. `start-gpu.sh` now uses `setsid -f` so the server survives the launcher shell.
 - `conf.sh` disable removes `start.sh`; enable recreates it even when a healthy OmniVoice listener is already running.
-- `start-gpu.sh` now treats an already healthy OmniVoice listener on `127.0.0.1:8021` as success, while still rejecting unrelated port conflicts.
+- `start-gpu.sh` now treats an already healthy OmniVoice listener on port `8021` as success, while still rejecting unrelated port conflicts.
 - `/health`, `/speakers_list`, `/speakers_list_extended`, `/active_language`, `/provider_info`, missing-speaker fallback, and `/tts_to_audio` were verified on `127.0.0.1:8021`.
 - `/tts_to_audio` returned `audio/wav` for a Slovak test sentence and wrote `/tmp/omnivoice-test.wav`.
 - Active-library auto-sync was verified by adding, using, and removing a temporary Spanish VoiceID after server startup without manually calling `/reload_voices`.
-- The running service is bound to `127.0.0.1:8021`, not `0.0.0.0`.
+- The running service is bound to `0.0.0.0:8021`; local health and connector calls remain available through `127.0.0.1:8021`.
+- LAN-enabled startup was verified against the live WSL runtime: `/health` and `/provider_info` responded through the non-loopback WSL address, and `check_bind_address` reported `LAN listener enabled`.
 - `/speakers_list_extended` exposes per-voice `voice.json` metadata, language profile, calibration status, and custom voice flag.
 - `/provider_info` exposes `honor_request_language=false`, configured male/female fallbacks, and the active 144-voice library.
 - Missing female VoiceIDs fall back to `femalenord`; missing male VoiceIDs fall back to `malenord`.
@@ -244,7 +245,7 @@ Deliverables:
   - build full selected-language CHIM library
   - run doctor
   - run end-to-end verification smoke test
-- `start-gpu.sh` binds to `127.0.0.1:8021`.
+- `start-gpu.sh` binds to `0.0.0.0:8021` for local and trusted-LAN clients; direct CLI startup remains loopback-only unless `--listen` is used.
 - `start.sh` symlink is created only when enabled.
 - `logs/server.log` captures startup and runtime errors.
 
@@ -252,7 +253,7 @@ Verification:
 
 - Enabling creates `/home/dwemer/omnivoice-tts/start.sh`.
 - Disabling removes `/home/dwemer/omnivoice-tts/start.sh`.
-- Running `start.sh` starts a listener on `127.0.0.1:8021`.
+- Running `start.sh` starts a listener on `0.0.0.0:8021`.
 - `/health` returns success after startup.
 - Disabled service is skipped by distro startup.
 
@@ -557,7 +558,7 @@ Verification refresh on July 8, 2026:
 - Native Stobe OmniVoice implementation was deployed to the local WSL runtime for verification. `core_tts_connector` readback returned `OmniVoice Default|omnivoice|http://127.0.0.1:8021|default|sk|default_male|default_female`.
 - Stobe PHP `stobeSynthesizeTtsFromConnector()` with `connector_type=omnivoice` and `voiceOverride=default_male` returned `provider=omnivoice`, `audio_path=soundcache/e3a3bda0dc250a4055cddeffdbcb0540.wav`, `duration_ms=4750`, `cached=false`, and `ok=true`.
 - Direct OmniVoice `default_female` fallback synthesis returned HTTP 200, `audio/wav`, and a 115724-byte WAV response.
-- Live WSL `omnivoice_cli.py verify --language sk --write-library-report` passed and wrote `/home/dwemer/omnivoice-tts/diagnostics/verify_latest.json`. Checks passed: `doctor=ready`, service health `voice_count=144 default_voice=femalenord`, loopback-only `127.0.0.1:8021` listener, `total=144 runtime_ready=144 calibrated=144 invalid_id=0 broken=0 warnings=0`, legacy XTTS-compatible endpoint contract checks, and four WAV syntheses for `malenord`, `femalenord`, `default_male`, and `default_female`.
+- Initial pre-LAN WSL verification passed with a loopback-only listener, a 144-voice Slovak library, legacy XTTS-compatible endpoint contract checks, and four fallback WAV syntheses. LAN-enabled startup and reachability are verified separately above.
 - Service contract verification covered `/speakers_list`, complete `/speakers_list_extended` metadata, `/languages`, `GET /active_language`, `POST /active_language`, unknown-language JSON error handling, `POST /reload_voices`, `POST /set_tts_settings`, trailing-slash `POST /tts_to_audio/`, and path-shaped `speaker_wav` VoiceID normalization.
 - Live WSL `/speakers_list_extended` verification confirmed `malenord` exposes language profile `sk`, reference paths, metadata, and calibration status `auto_master_selected`.
 - Live WSL `POST /active_language` with `zz_omnivoice_verify_missing` returned JSON 404 detail, and `POST /tts_to_audio` with `speaker_wav=/tmp/malenord.wav` returned HTTP 200 `audio/wav` with a 220844-byte WAV response.
@@ -580,7 +581,7 @@ Verification refresh on July 8, 2026:
 - Export lifecycle verification covers Chatterbox, PocketTTS, and XTTS target directory overrides, compatibility warnings in stderr and manifests, manifest creation, reruns of OmniVoice-owned files, refusal to overwrite unowned existing speaker WAVs, explicit `--force`, and zip export creation.
 - `ddistro_install.sh` now supports test-only environment overrides `OMNIVOICE_BASE_DIR`, `OMNIVOICE_SKIP_DEPENDENCIES`, and `OMNIVOICE_SKIP_DOCTOR`; default user install behavior remains `/home/dwemer` with dependency install and doctor enabled.
 - Public-repo preparation now includes `omnivoice-tts/THIRD_PARTY_NOTICES.md`, a non-release-approval draft covering submitted-tool permission, OmniVoice code/model/tokenizer signals checked on July 8, 2026, and the local runtime package snapshot.
-- Live WSL controlled startup-gate verification passed: with `/home/dwemer/omnivoice-tts/start.sh` removed, `/etc/start_env` printed `Skipping OmniVoice TTS (not enabled)` and left port `8021` closed; after restoring `start.sh`, `/etc/start_env` printed `Starting OmniVoice TTS`, opened only `127.0.0.1:8021`, and `omnivoice_cli.py verify --language sk --with-sites --json diagnostics/verify_startup_gate_latest.json` passed.
+- Initial pre-LAN controlled startup-gate verification passed: disabling `start.sh` left port `8021` closed and restoring it restarted a healthy service. The same startup script now enables the verified LAN listener described above.
 - Compiled launcher `VoiceEngineService` verification passed from a temporary console harness: `GetStatusAsync` detected `engine=omnivoice`, and `ApplyVoiceEngineAsync("omnivoice")` returned `applied=True` for CHIM/Skyrim (`dwemer`), Stobe/Kenshi (`stobe`), and Dialectic/Fallout (`dialectic`). This caught and fixed a launcher-only SQL quoting bug where `DO $$` blocks were expanded before PostgreSQL saw them.
 - Post-launcher-apply live verification passed with `omnivoice_cli.py verify --language sk --write-library-report --with-sites --json diagnostics/verify_launcher_apply_latest.json`; CHIM, Dialectic, and Stobe site smoke tests wrote valid WAV files through the OmniVoice connector after the compiled launcher apply path ran.
 - Compiled launcher install-components card verification passed from a temporary STA WPF harness. The actual `InstallComponentsWindowViewModel` OmniVoice item reported `installed=True`, `status=Healthy`, `detail=enabled; healthy; language sk; 144 voices; CUDA yes; NVIDIA GeForce RTX 4090; default femalenord`, and exposed both Configure and View Logs actions.

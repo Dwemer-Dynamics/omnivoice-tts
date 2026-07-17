@@ -15,6 +15,7 @@ from voice_library import REFERENCE_WAV, runtime_voice_directories
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SERVER_HOST = "127.0.0.1"
+LISTEN_SERVER_HOST = "0.0.0.0"
 DEFAULT_SERVER_PORT = "8021"
 EXPORT_TARGETS = {
     "chatterbox": Path(os.environ.get("OMNIVOICE_CHATTERBOX_VOICES_DIR", "/home/dwemer/chatterbox/voices")),
@@ -140,6 +141,11 @@ def build_parser() -> argparse.ArgumentParser:
     server = sub.add_parser("server", help="Run the FastAPI server.")
     server.add_argument("--host", default=DEFAULT_SERVER_HOST)
     server.add_argument("--port", default=DEFAULT_SERVER_PORT)
+    server.add_argument(
+        "--listen",
+        action="store_true",
+        help="Allow connections from outside this computer by binding to 0.0.0.0.",
+    )
 
     return parser
 
@@ -205,6 +211,10 @@ def command_add_custom(args: argparse.Namespace) -> int:
     return run_script("custom_voice_cli.py", forwarded)
 
 
+def resolve_server_host(args: argparse.Namespace) -> str:
+    return LISTEN_SERVER_HOST if args.listen else args.host
+
+
 def command_server(args: argparse.Namespace) -> int:
     return subprocess.call(
         [
@@ -213,7 +223,7 @@ def command_server(args: argparse.Namespace) -> int:
             "uvicorn",
             "server:app",
             "--host",
-            args.host,
+            resolve_server_host(args),
             "--port",
             str(args.port),
             "--workers",

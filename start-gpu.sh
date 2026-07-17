@@ -40,19 +40,19 @@ PY
 )"
 
 if [ "$PORT_STATUS" = "healthy_omnivoice" ]; then
-    echo "Port 127.0.0.1:8021 is already served by healthy OmniVoice; leaving it running." >> "$LOG_FILE"
+    echo "Port 8021 is already served by healthy OmniVoice; leaving it running." >> "$LOG_FILE"
     exit 0
 fi
 
 if [ "$PORT_STATUS" = "conflict" ]; then
-    echo "Port 127.0.0.1:8021 is already in use; OmniVoice was not started." >> "$LOG_FILE"
+    echo "Port 8021 is already in use; OmniVoice was not started." >> "$LOG_FILE"
     exit 1
 fi
 
 {
     echo
     echo "=== OmniVoice TTS start $(date -Iseconds) ==="
-    echo "Binding to 127.0.0.1:8021"
+    echo "Binding to 0.0.0.0:8021 (LAN access enabled)"
 } >> "$LOG_FILE"
 
-setsid -f "$VENV_DIR/bin/python" "$REPO_DIR/omnivoice_cli.py" server --host 127.0.0.1 --port 8021 >> "$LOG_FILE" 2>&1 < /dev/null
+setsid -f "$VENV_DIR/bin/python" "$REPO_DIR/omnivoice_cli.py" server --listen --port 8021 >> "$LOG_FILE" 2>&1 < /dev/null
