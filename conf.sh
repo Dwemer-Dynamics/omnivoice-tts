@@ -51,7 +51,7 @@ while true; do
     cat << EOF
 Multilingual OmniVoice TTS
 
-Service port: 127.0.0.1:8021
+Service port: 0.0.0.0:8021 (local and LAN)
 Install path: $REPO_DIR
 Web panel: http://127.0.0.1/OmniVoice/
 

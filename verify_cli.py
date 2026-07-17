@@ -209,12 +209,12 @@ def check_bind_address(port: int) -> VerifyCheck:
         if f"0.0.0.0:{port}" in line or f"*:{port}" in line or f"[::]:{port}" in line or f":::{port}" in line
     ]
     if wildcard:
-        return VerifyCheck("bind_address", "fail", "service is listening on a wildcard address", {"listeners": wildcard})
+        return VerifyCheck("bind_address", "pass", "LAN listener enabled", {"listeners": listeners})
 
     loopback = [line for line in listeners if f"127.0.0.1:{port}" in line or f"[::1]:{port}" in line]
     if loopback:
         return VerifyCheck("bind_address", "pass", "loopback listener only", {"listeners": listeners})
-    return VerifyCheck("bind_address", "warn", "listener found, but loopback address could not be confirmed", {"listeners": listeners})
+    return VerifyCheck("bind_address", "warn", "listener found, but its bind address could not be classified", {"listeners": listeners})
 
 
 def listening_tcp_ports() -> tuple[dict[int, list[str]], str]:

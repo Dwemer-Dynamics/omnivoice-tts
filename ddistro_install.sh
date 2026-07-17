@@ -11,7 +11,7 @@ WEB_LINK="${OMNIVOICE_WEB_LINK:-/var/www/html/OmniVoice}"
 echo "=== DwemerDistro OmniVoice TTS setup ==="
 echo
 echo "This installs the optional Multilingual OmniVoice TTS component."
-echo "It uses its own Python venv and listens on 127.0.0.1:8021 while installed."
+echo "It uses its own Python venv and listens on 0.0.0.0:8021 for local and LAN clients while installed."
 echo
 
 if ! command -v git >/dev/null 2>&1; then

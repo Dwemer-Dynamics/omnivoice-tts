@@ -49,7 +49,7 @@ $assetVersion = static function (string $path): string {
             </div>
             <div>
                 <span class="label">Endpoint</span>
-                <strong>127.0.0.1:8021</strong>
+                <strong>0.0.0.0:8021 (LAN enabled)</strong>
             </div>
         </section>
 

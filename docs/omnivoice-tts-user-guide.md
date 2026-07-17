@@ -1,8 +1,9 @@
 # OmniVoice TTS For DwemerDistro
 
-OmniVoice TTS is an optional DwemerDistro component for multilingual local TTS.
+OmniVoice TTS is an optional DwemerDistro component for multilingual TTS.
 It runs inside `DwemerAI4Skyrim3` as user `dwemer` and serves an
-XTTS-compatible API on `127.0.0.1:8021`.
+XTTS-compatible API on port `8021`. DwemerDistro starts it with trusted-LAN
+access enabled, matching XTTS and Chatterbox.
 
 The component does not include model weights, generated voice libraries, Skyrim
 voice files, CHIM files, logs, or user-created voices. Those are downloaded or
@@ -175,6 +176,19 @@ The launcher applies native OmniVoice connectors:
 
 OmniVoice does not require the old XTTS service to be installed or running.
 
+## Remote Hosting
+
+DwemerDistro starts OmniVoice on `0.0.0.0:8021`, allowing the Windows host to
+forward it to another computer. On the TTS computer, forward Windows TCP port
+`8021` to the current WSL address and allow that port through Windows Firewall.
+On the gaming computer, use `http://<TTS_COMPUTER_LAN_IP>:8021` as the
+OmniVoice connector URL.
+
+OmniVoice has no API authentication. Only expose it on a trusted LAN and
+restrict the firewall rule to the gaming computer where practical. See the
+[CHIM remote-hosting guide](https://dwemerdynamics.com/chim/remote-hosting-guide.html)
+for the complete Windows and WSL procedure.
+
 ## Health Checks
 
 ```bash
@@ -188,12 +202,12 @@ python omnivoice_cli.py verify --language sk --write-library-report --with-sites
 python omnivoice_cli.py verify-lifecycle
 ```
 
-Expected service binding is `127.0.0.1:8021`. The service should not bind to
-`0.0.0.0` by default.
+Expected DwemerDistro service binding is `0.0.0.0:8021`. Starting the CLI
+directly remains loopback-only unless `--listen` is supplied.
 
 `verify` is the practical smoke test before release or support triage. It writes
 `diagnostics/verify_latest.json` and checks doctor, service health,
-`/provider_info`, loopback binding, selected-language voice audit,
+`/provider_info`, LAN or loopback binding, selected-language voice audit,
 OmniVoice service contract endpoints, extended speaker metadata, and
 fallback voice synthesis.
 
