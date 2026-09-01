@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -euo pipefail
+export PIP_NO_CACHE_DIR=1
+export PIP_DISABLE_PIP_VERSION_CHECK=1
 
 BASE_DIR="${OMNIVOICE_BASE_DIR:-/home/dwemer}"
 REPO_URL="${OMNIVOICE_REPO_URL:-https://github.com/Dwemer-Dynamics/omnivoice-tts}"
@@ -32,7 +34,7 @@ if [ ! -d "$REPO_DIR/.git" ]; then
         echo "Using existing non-git component directory: $REPO_DIR"
     else
         echo "Cloning OmniVoice component..."
-        git clone "$REPO_URL" "$REPO_DIR"
+        git clone --depth 1 "$REPO_URL" "$REPO_DIR"
     fi
 else
     echo "Updating OmniVoice component..."
@@ -73,9 +75,9 @@ echo "Installing Python dependencies..."
 if [ "${OMNIVOICE_SKIP_DEPENDENCIES:-0}" = "1" ]; then
     echo "Skipping dependency install because OMNIVOICE_SKIP_DEPENDENCIES=1."
 else
-    python -m pip install --upgrade pip setuptools wheel
-    python -m pip install -r requirements_torch_cuda128.txt
-    python -m pip install -r requirements_runtime.txt
+    python -m pip install --no-cache-dir --upgrade pip setuptools wheel
+    python -m pip install --no-cache-dir -r requirements_torch_cuda128.txt
+    python -m pip install --no-cache-dir -r requirements_runtime.txt
     python -m pip check
 fi
 
