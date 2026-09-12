@@ -3,8 +3,8 @@
 This file records source attribution and upstream runtime/model notices for the
 optional DwemerDistro OmniVoice TTS component.
 
-The component source in this repository is licensed under the MIT License. The
-MIT license applies to this repository's code and documentation only. It does
+The component source in this repository is licensed under GNU GPLv3 only. The
+GPL license applies to this repository's code and documentation only. It does
 not relicense downloaded third-party models, tokenizers, or Python packages.
 
 ## Submitted Companion Tool
@@ -19,7 +19,8 @@ Current status:
 - Attribution: original submitted Windows companion tool by ErikErix.
 - Discord: ErikErix.
 - NexusMods: erikholik.
-- Dwemer Dynamics publishes this adapted component source under the MIT License.
+- Dwemer Dynamics originally published this adapted component source under MIT;
+  that notice is retained in `LICENSES/MIT-original.txt`. This revision uses GPLv3 only.
 
 ## OmniVoice
 
@@ -44,7 +45,7 @@ Release implication:
 - Do not claim commercial-use compatibility for the downloaded pretrained model
   or tokenizer.
 - The installer downloads models onto the user's machine; those upstream terms
-  continue to apply independently from this repository's MIT source license.
+  continue to apply independently from this repository's GPL source license.
 
 ## Runtime Dependencies
 
