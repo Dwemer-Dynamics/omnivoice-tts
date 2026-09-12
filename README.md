@@ -228,10 +228,10 @@ Original tool author credit:
 - Discord: ErikErix
 - NexusMods: erikholik
 
-This repository's component source and documentation are licensed under the MIT
-License. See `LICENSE`.
+This repository's component source and documentation are licensed under GNU
+GPLv3 only. See `LICENSE` and `LICENSING.md`.
 
-The MIT license applies to this repository's code only. It does not relicense
+The project GPL license applies to this repository's code only. It does not relicense
 downloaded third-party models, tokenizers, or Python packages.
 
 The installed `omnivoice` Python package and the upstream `k2-fsa/OmniVoice`
