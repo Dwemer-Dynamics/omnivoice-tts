@@ -74,6 +74,14 @@ class VoiceProfile:
     prompt_lock: Lock = field(default_factory=Lock)
 
 
+@dataclass(frozen=True)
+class SynthesisTarget:
+    """Voice and language resolved together from one runtime state snapshot."""
+
+    voice: VoiceProfile
+    language: LanguageProfile
+
+
 def normalize_voice_id(value: str) -> str:
     stem = Path(value.strip()).stem
     return re.sub(r"[^a-z0-9]+", "", stem.casefold())
@@ -682,37 +690,50 @@ class RuntimeState:
     def resolve_voice(self, requested: str | None) -> VoiceProfile:
         with self.lock:
             self.sync_voices_if_changed_unlocked()
-            if not self.voices or self.default_voice is None:
-                raise HTTPException(
-                    status_code=503,
-                    detail={
-                        "error": "no_voices",
-                        "language": self.active_language.id,
-                        "voice_directory": str(self.active_voice_dir),
-                        "hint": "Prepare and calibrate at least one VoiceID for this language.",
-                    },
-                )
+            return self.resolve_voice_unlocked(requested)
 
-            if requested is None or not requested.strip():
-                return self.voices[self.default_voice]
+    def resolve_synthesis_target(self, requested: str | None) -> SynthesisTarget:
+        # A language switch or library reload may replace voices and
+        # active_language between two separate lock acquisitions. Resolving both
+        # under one acquisition keeps the prepared VoiceProfile, the generation
+        # language and the response headers on the same library.
+        with self.lock:
+            self.sync_voices_if_changed_unlocked()
+            voice = self.resolve_voice_unlocked(requested)
+            return SynthesisTarget(voice=voice, language=self.active_language)
 
-            canonical = self.voice_aliases.get(normalize_voice_id(requested))
-            if canonical is None:
-                # CHIM can keep sending the NPC's original VoiceID even when the
-                # tester has prepared only one voice for the active language.
-                # Returning 404 makes the game go silent; falling back keeps TTS
-                # usable and logs the mismatch for debugging. Full libraries will
-                # still resolve the exact VoiceID normally.
-                fallback_voice = self.fallback_voice_for_request(requested)
-                log.warning(
-                    "Requested voice %r is not available in language %s; falling back to %s. Available voices: %s",
-                    requested,
-                    self.active_language.id,
-                    fallback_voice,
-                    ", ".join(self.voice_names[:20]),
-                )
-                return self.voices[fallback_voice]
-            return self.voices[canonical]
+    def resolve_voice_unlocked(self, requested: str | None) -> VoiceProfile:
+        if not self.voices or self.default_voice is None:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "no_voices",
+                    "language": self.active_language.id,
+                    "voice_directory": str(self.active_voice_dir),
+                    "hint": "Prepare and calibrate at least one VoiceID for this language.",
+                },
+            )
+
+        if requested is None or not requested.strip():
+            return self.voices[self.default_voice]
+
+        canonical = self.voice_aliases.get(normalize_voice_id(requested))
+        if canonical is None:
+            # CHIM can keep sending the NPC's original VoiceID even when the
+            # tester has prepared only one voice for the active language.
+            # Returning 404 makes the game go silent; falling back keeps TTS
+            # usable and logs the mismatch for debugging. Full libraries will
+            # still resolve the exact VoiceID normally.
+            fallback_voice = self.fallback_voice_for_request(requested)
+            log.warning(
+                "Requested voice %r is not available in language %s; falling back to %s. Available voices: %s",
+                requested,
+                self.active_language.id,
+                fallback_voice,
+                ", ".join(self.voice_names[:20]),
+            )
+            return self.voices[fallback_voice]
+        return self.voices[canonical]
 
 
 runtime = RuntimeState()
@@ -1448,13 +1469,14 @@ def tts_to_audio(request: TTSRequest) -> Response:
     if not text:
         raise HTTPException(status_code=400, detail="Text must not be empty.")
 
-    voice = runtime.resolve_voice(request.speaker_wav)
-    with runtime.lock:
-        language = runtime.active_language
-
     # The active language deliberately wins over the XTTS request language. This
     # keeps old CHIM connectors (which may send cs for Slovak) from selecting the
     # wrong voice library. A future native provider can switch /active_language.
+    # Lock order: runtime.lock is released before prompt_lock/generation_lock are
+    # taken, while switch/reload paths take generation_lock then runtime.lock.
+    target = runtime.resolve_synthesis_target(request.speaker_wav)
+    voice = target.voice
+    language = target.language
     prompt = get_or_create_prompt(voice)
     started = time.perf_counter()
 
